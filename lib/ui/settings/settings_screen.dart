@@ -484,7 +484,7 @@ class _CalendarSectionState extends ConsumerState<_CalendarSection> {
                       ? null
                       : () => _run(() async {
                             final n = await service.sync();
-                            if (mounted) showMessage(context, 'Synced: $n workshop session(s)');
+                            if (mounted) showMessage(this.context, 'Synced: $n workshop session(s)');
                           }),
                   icon: const Icon(Icons.sync),
                   label: const Text('Sync now'),

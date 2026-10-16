@@ -5,7 +5,9 @@ Runs fully offline on one Android tablet; all data is stored locally in SQLite.
 
 ## First-time setup
 
-Platform folders (`android/`) are not committed yet. Generate them once:
+**Full step-by-step guide (install, tablet, Google Calendar, updates): [SETUP.md](SETUP.md).**
+
+Short version — platform folders (`android/`) are not committed yet. Generate them once:
 
 ```bash
 git clone https://github.com/Hassan-Melhim/entre-sales.git
