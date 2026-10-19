@@ -43,7 +43,7 @@ each rule marked with `►►►`:
 | Workshop keyword | Calendar events whose title contains "workshop" |
 | Gender options | Male, Female, Queer |
 
-VAT per category (21%, books 4%) is edited in the app: **Settings → Categories**.
+VAT per category (21%, books 4%, café 0%) is edited in the app: **Settings → Categories**.
 A single product can have its own tax rate (checkbox when logging the product).
 
 ## How the app works
@@ -95,6 +95,39 @@ The app reads the store's calendar to know when workshops happen. One-time setup
 Sessions are cached on the tablet, so tagging works offline; sync again whenever you're online.
 Workshops that weren't on the calendar can be added by hand in **Invoices → Workshop sessions**.
 
+## Demo data
+
+**Settings → Demo data → Load demo data** replaces everything on the device with:
+
+- the **September 2026 inventory** (`ES_Inventory_12Sept2026.xlsx`): 40 artists, 266 products, 514 variants.
+  Rows that are versions of one item are grouped as variants (e.g. silver/gold jewellery, bedrunner
+  pattern × size, café drinks). Prices in the sheet include VAT; base prices are calculated from them.
+  Items marked "?" belong to the store (artist **Entre Salas**, 100% commission, so no payout).
+  Café and bar items have a large stock and 0% VAT. Workshop and participation fees are left out.
+- a **mock sales history, 1 June – 18 October 2026**, following the opening hours
+  (Mon & Wed–Sat 11–21, Sun 14–19, closed Tuesdays): ~1,550 sales, Friends & Family discounts,
+  refunds, restocks, and 2–3 workshop sessions a month (some from "Google Calendar", some added by hand,
+  a few sales tagged by hand). Stock at the end matches the sheet; negative quantities became 0.
+- placeholder artist details: mixed genders, residency and commissions; billing details are obviously
+  fake (`ES00 0000…`, "Demo Bank").
+- one demo-only manual tax rate (10% on Matilde Cunha's *Photo Strip*) to show that feature.
+
+The button is shown on computers and in debug builds, and hidden in the release build installed on the
+store's tablet so real data can't be wiped by accident.
+
+The history is replayed through the app's own sale and refund code, so all amounts are calculated exactly
+like real sales. `test/demo_data_test.dart` loads the file and checks every final stock level against the
+sheet.
+
+To rebuild the demo file (e.g. from a newer inventory export):
+
+```powershell
+pip install openpyxl
+python tool/demo_data/generate_demo_data.py path\to\ES_Inventory.xlsx
+```
+
+How each row is grouped and categorised is listed in `tool/demo_data/catalog_mapping.py`.
+
 ## Code layout
 
 ```
@@ -107,8 +140,10 @@ lib/
   services/                    PDF, CSV export, file saving/sharing, Google Calendar
   ui/                          screens (Riverpod)
   ui/responsive.dart           breakpoints and adaptive layout helpers
+tool/demo_data/                builds assets/demo/demo_data.json from the inventory sheet
 test/
   pricing_test.dart            money formulas
+  demo_data_test.dart          loads the demo data and checks it against the sheet
   database_test.dart           sales, stock, refunds, settlements, reports on a real SQLite database
 ```
 

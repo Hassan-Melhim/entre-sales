@@ -241,8 +241,9 @@ class InventoryRepository {
   }
 
   /// Adds stock to a variant. A restock overwrites the date of arrival.
-  Future<void> restock(int variantId, int addQuantity, DateTime arrival) async {
-    await db.rawUpdate(
+  /// [using] lets callers run it inside their own transaction.
+  Future<void> restock(int variantId, int addQuantity, DateTime arrival, {DatabaseExecutor? using}) async {
+    await (using ?? db).rawUpdate(
       'UPDATE variants SET quantity = quantity + ?, date_of_arrival = ? WHERE id = ?',
       [addQuantity, toDb(arrival), variantId],
     );

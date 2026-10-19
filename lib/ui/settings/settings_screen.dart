@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/business_rules.dart';
@@ -13,8 +15,10 @@ import '../../models/discount.dart';
 import '../../models/product_category.dart';
 import '../../providers.dart';
 import '../../services/calendar_service.dart';
+import '../../services/demo_data_service.dart';
 import '../../services/file_output_service.dart';
 import '../common.dart';
+import '../pos/cart.dart';
 import '../responsive.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -39,6 +43,7 @@ class SettingsScreen extends StatelessWidget {
                 _CalendarSection(),
                 _RulesSection(),
                 _DataSection(),
+                _DemoDataSection(),
               ],
             ),
           ),
@@ -641,6 +646,109 @@ class _DataSection extends StatelessWidget {
             },
             icon: const Icon(Icons.backup_outlined),
             label: const Text('Save database backup'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// --------------------------------------------------------------- Demo data
+
+/// Replaces all data with the demo data built from the September 2026
+/// inventory. Shown on computers and in debug builds; hidden in the release
+/// build installed on the store's tablet so real data can't be wiped by
+/// accident (change [_visible] to show it there too).
+class _DemoDataSection extends ConsumerStatefulWidget {
+  const _DemoDataSection();
+
+  static bool get _visible => FileOutputService.isDesktop || !kReleaseMode;
+
+  @override
+  ConsumerState<_DemoDataSection> createState() => _DemoDataSectionState();
+}
+
+class _DemoDataSectionState extends ConsumerState<_DemoDataSection> {
+  final _progress = ValueNotifier<double>(0);
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final ok = await confirm(
+      context,
+      'Load demo data?',
+      'This DELETES all artists, products, sales and workshop sessions on this device and replaces them '
+          'with demo data (the September 2026 inventory and a mock sales history from June to October).\n\n'
+          'Save a database backup first if you want to keep the current data.',
+      action: 'Delete and load',
+    );
+    if (!ok || !mounted) return;
+
+    _progress.value = 0;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: const Text('Loading demo data…'),
+          content: SizedBox(
+            width: ctx.dialogWidth(360),
+            child: ValueListenableBuilder<double>(
+              valueListenable: _progress,
+              builder: (_, v, __) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LinearProgressIndicator(value: v),
+                  const SizedBox(height: 8),
+                  Text('${(v * 100).round()}%'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final json = await rootBundle.loadString(DemoDataService.assetPath);
+      final result = await DemoDataService.load(
+        ref.read(databaseProvider),
+        json,
+        onProgress: (p) => _progress.value = p,
+      );
+      ref.read(cartProvider.notifier).clear();
+      refreshData(ref);
+      navigator.pop();
+      if (mounted) showMessage(context, 'Demo data loaded: ${result.summary}');
+    } catch (e) {
+      navigator.pop();
+      refreshData(ref);
+      if (mounted) showMessage(context, 'Could not load demo data: $e', error: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_DemoDataSection._visible) return const SizedBox.shrink();
+    return _Section(
+      title: 'Demo data',
+      subtitle: 'Fill the app with the September 2026 inventory and a mock sales history (June–October 2026) '
+          'to try every feature. Replaces all current data.',
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            onPressed: _load,
+            icon: const Icon(Icons.dataset_outlined),
+            label: const Text('Load demo data'),
           ),
         ),
       ],

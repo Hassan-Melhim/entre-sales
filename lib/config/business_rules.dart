@@ -63,15 +63,34 @@ class BusinessRules {
 /// Each attribute has an options list:
 ///   - empty list  → the value is typed as free text when logging a product
 ///   - with values → the user picks from that fixed list
+///
+/// Based on the products in the store's inventory (Sept 2026). Keep in sync
+/// with CATEGORIES in tool/demo_data/catalog_mapping.py (a test checks this).
 const List<SeedCategory> seedCategories = [
-  // ►►► VAT: 21% general rate, 4% for books.
-  SeedCategory('Clothes', 21, {'Size': []}),
-  SeedCategory('Jewelry', 21, {}),
-  SeedCategory('Books', 4, {'Language': []}),
-  SeedCategory('Posters', 21, {'Size': []}),
-  SeedCategory('Ceramics', 21, {}),
-  SeedCategory('Playing cards', 21, {}),
-  SeedCategory('Lamps', 21, {}),
+  // ►►► VAT: 21% general rate, 4% for books, 0% for the café (as instructed).
+  SeedCategory('Clothing', 21, {
+    'Size': ['XS', 'XS/S', 'S', 'M', 'L', 'XL'],
+    'Style': [],
+  }),
+  SeedCategory('Jewellery', 21, {'Finish': [], 'Style': []}),
+  SeedCategory('Accessories', 21, {'Style': [], 'Size': []}),
+  SeedCategory('Ceramics', 21, {'Design': [], 'Size': []}),
+  SeedCategory('Prints & Posters', 21, {
+    'Design': [],
+    'Size': ['A4', 'A3', 'Big'],
+  }),
+  SeedCategory('Postcards & Stickers', 21, {'Design': []}),
+  SeedCategory('Books & Zines', 4, {'Language': []}),
+  SeedCategory('Stationery', 21, {'Design': []}),
+  SeedCategory('Home & Textiles', 21, {
+    'Pattern': [],
+    'Size': ['Single', 'Double', 'King'],
+  }),
+  SeedCategory('Lamps', 21, {'Design': []}),
+  SeedCategory('Candles', 21, {'Scent': []}),
+  SeedCategory('Toys & Games', 21, {'Design': []}),
+  SeedCategory('Art & Objects', 21, {'Design': []}),
+  SeedCategory('Food & Drink', 0, {'Option': []}),
   SeedCategory('Miscellaneous', 21, {}),
 ];
 

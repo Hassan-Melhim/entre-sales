@@ -45,3 +45,4 @@ flutter:
   assets:
     - assets/fonts/Lato-Regular.ttf
     - assets/fonts/Lato-Bold.ttf
+    - assets/demo/demo_data.json

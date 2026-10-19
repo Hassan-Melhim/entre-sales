@@ -100,6 +100,12 @@ Good to know on Windows:
 - **Google Calendar sync only works on the tablet.** On Windows you can add workshop sessions by hand
   (*Invoices → Workshop sessions → Add by hand*) to test session tagging.
 
+### Try it with demo data
+
+In the app on Windows: **Settings → Demo data → Load demo data**. It fills the app with the September
+inventory and a mock sales history (June–October) so every screen, report and invoice has something to
+show. It replaces all data on that device.
+
 ## Part 6 — Prepare the tablet (once)
 
 1. On the tablet: **Settings → About tablet** (sometimes under *Software information*).

@@ -21,3 +21,7 @@ android/key.properties
 
 # OS
 .DS_Store
+
+# Source spreadsheets used to build demo data (kept out of the repository)
+*.xlsx
+__pycache__/

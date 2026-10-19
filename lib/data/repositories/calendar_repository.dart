@@ -32,6 +32,15 @@ class CalendarRepository {
     return rows.isEmpty ? null : CalendarSession.fromMap(rows.first);
   }
 
+  /// Stores a session as given (from Google Calendar or demo data).
+  Future<int> addSession(CalendarSession s) => db.insert('calendar_events', {
+        'google_id': s.googleId,
+        'title': s.title,
+        'start_at': toDb(s.start),
+        'end_at': toDb(s.end),
+        'synced_at': s.googleId == null ? null : toDb(DateTime.now()),
+      });
+
   /// A session added by hand (for a workshop that was not on the calendar).
   Future<int> addManualSession(String title, DateTime start, DateTime end) =>
       db.insert('calendar_events', {'title': title, 'start_at': toDb(start), 'end_at': toDb(end)});
