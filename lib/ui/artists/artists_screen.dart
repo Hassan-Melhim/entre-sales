@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/business_rules.dart';
 import '../../core/money.dart';
-import '../../data/models.dart';
+import '../../models/artist.dart';
 import '../../providers.dart';
 import '../common.dart';
+import '../responsive.dart';
 
 class ArtistsScreen extends ConsumerStatefulWidget {
   const ArtistsScreen({super.key});
@@ -20,6 +21,7 @@ class _ArtistsScreenState extends ConsumerState<ArtistsScreen> {
   @override
   Widget build(BuildContext context) {
     final artists = ref.watch(artistsProvider);
+    final pad = context.pagePadding;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -27,7 +29,7 @@ class _ArtistsScreenState extends ConsumerState<ArtistsScreen> {
           title: 'Artists',
           actions: [
             FilledButton.icon(
-              onPressed: () => showArtistForm(context, ref),
+              onPressed: () => showArtistForm(context),
               icon: const Icon(Icons.add),
               label: const Text('New artist'),
             ),
@@ -44,12 +46,13 @@ class _ArtistsScreenState extends ConsumerState<ArtistsScreen> {
                 return const EmptyState(icon: Icons.palette_outlined, message: 'No artists yet');
               }
               return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
                 itemCount: filtered.length,
                 separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final a = filtered[i];
                   return ListTile(
+                    contentPadding: EdgeInsets.zero,
                     title: Text(a.name),
                     subtitle: Text([
                       if (a.gender != null) a.gender!,
@@ -57,7 +60,7 @@ class _ArtistsScreenState extends ConsumerState<ArtistsScreen> {
                       a.isSpainResident ? 'Spain resident' : 'Non-resident',
                     ].join(' · ')),
                     trailing: const Icon(Icons.chevron_right),
-                    onTap: () => showArtistForm(context, ref, artist: a),
+                    onTap: () => showArtistForm(context, artist: a),
                   );
                 },
               );
@@ -69,14 +72,22 @@ class _ArtistsScreenState extends ConsumerState<ArtistsScreen> {
   }
 }
 
-/// Opens the create/edit artist dialog. Returns the saved artist id.
-Future<int?> showArtistForm(BuildContext context, WidgetRef ref, {Artist? artist}) {
-  return showDialog<int>(context: context, builder: (_) => _ArtistForm(artist: artist));
+/// Opens the create/edit artist form. Returns the saved artist id.
+/// Full screen on phones, a dialog on larger screens.
+Future<int?> showArtistForm(BuildContext context, {Artist? artist}) {
+  if (context.isCompact) {
+    return Navigator.push<int>(
+      context,
+      MaterialPageRoute(fullscreenDialog: true, builder: (_) => _ArtistForm(artist: artist, fullScreen: true)),
+    );
+  }
+  return showDialog<int>(context: context, builder: (_) => _ArtistForm(artist: artist, fullScreen: false));
 }
 
 class _ArtistForm extends ConsumerStatefulWidget {
   final Artist? artist;
-  const _ArtistForm({this.artist});
+  final bool fullScreen;
+  const _ArtistForm({this.artist, required this.fullScreen});
 
   @override
   ConsumerState<_ArtistForm> createState() => _ArtistFormState();
@@ -94,6 +105,8 @@ class _ArtistFormState extends ConsumerState<_ArtistForm> {
       text: widget.artist?.commissionPercent == null ? '' : widget.artist!.commissionPercent!.toString());
   late String? _gender = widget.artist?.gender;
   late bool _resident = widget.artist?.isSpainResident ?? true;
+
+  String get _title => widget.artist == null ? 'New artist' : 'Edit artist';
 
   @override
   void dispose() {
@@ -137,78 +150,96 @@ class _ArtistFormState extends ConsumerState<_ArtistForm> {
     if (mounted) Navigator.pop(context);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Widget field(TextEditingController c, String label, {String? hint, bool isRequired = false, String? Function(String?)? validator}) =>
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: TextFormField(
-            controller: c,
-            decoration: InputDecoration(labelText: label, hintText: hint),
-            validator: validator ?? (isRequired ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null : null),
-          ),
+  Widget _field(TextEditingController c, String label,
+          {String? hint, bool isRequired = false, String? Function(String?)? validator}) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextFormField(
+          controller: c,
+          decoration: InputDecoration(labelText: label, hintText: hint),
+          validator: validator ?? (isRequired ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null : null),
+        ),
+      );
+
+  Widget _fields(BuildContext context) => Form(
+        key: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 4),
+            _field(_name, 'Name *', isRequired: true),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: DropdownButtonFormField<String>(
+                value: _gender,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Gender (for sales analysis)'),
+                items: [for (final g in BusinessRules.genders) DropdownMenuItem(value: g, child: Text(g))],
+                onChanged: (v) => setState(() => _gender = v),
+              ),
+            ),
+            _field(_address, 'Address'),
+            Text('Billing', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            _field(_legalName, 'Legal name'),
+            _field(_taxId, 'Tax ID (NIF / NIE)'),
+            _field(_iban, 'IBAN'),
+            _field(_bank, 'Bank'),
+            Text('Payment terms', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            _field(
+              _commission,
+              'Store commission %',
+              hint: 'Empty = default ${formatPercent(BusinessRules.defaultCommissionPercent)}',
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty || parsePercent(v) != null) ? null : 'Enter a number from 0 to 100',
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Resides in Spain'),
+              subtitle: Text('${BusinessRules.residentTaxAddedOnTop ? 'Adds' : 'Withholds'} '
+                  '${formatPercent(BusinessRules.spainResidentArtistTaxPercent)} tax on payouts'),
+              value: _resident,
+              onChanged: (v) => setState(() => _resident = v),
+            ),
+          ],
+        ),
+      );
+
+  Widget? _deleteButton(BuildContext context) => widget.artist == null
+      ? null
+      : TextButton(
+          onPressed: _delete,
+          style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+          child: const Text('Delete'),
         );
 
-    return AlertDialog(
-      title: Text(widget.artist == null ? 'New artist' : 'Edit artist'),
-      content: SizedBox(
-        width: 560,
-        child: Form(
-          key: _form,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 4),
-                field(_name, 'Name *', isRequired: true),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: DropdownButtonFormField<String>(
-                    value: _gender,
-                    decoration: const InputDecoration(labelText: 'Gender (for sales analysis)'),
-                    items: [
-                      for (final g in BusinessRules.genders) DropdownMenuItem(value: g, child: Text(g)),
-                    ],
-                    onChanged: (v) => setState(() => _gender = v),
-                  ),
-                ),
-                field(_address, 'Address'),
-                Text('Billing', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                field(_legalName, 'Legal name'),
-                field(_taxId, 'Tax ID (NIF / NIE)'),
-                field(_iban, 'IBAN'),
-                field(_bank, 'Bank'),
-                Text('Payment terms', style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                field(
-                  _commission,
-                  'Store commission %',
-                  hint: 'Leave empty for the default ${formatPercent(BusinessRules.defaultCommissionPercent)}',
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty || parsePercent(v) != null) ? null : 'Enter a number from 0 to 100',
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Resides in Spain'),
-                  subtitle: Text(
-                      '${BusinessRules.residentTaxAddedOnTop ? 'Adds' : 'Withholds'} ${formatPercent(BusinessRules.spainResidentArtistTaxPercent)} tax on payouts'),
-                  value: _resident,
-                  onChanged: (v) => setState(() => _resident = v),
-                ),
-              ],
-            ),
-          ),
+  @override
+  Widget build(BuildContext context) {
+    final delete = _deleteButton(context);
+
+    if (widget.fullScreen) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(_title),
+          actions: [
+            if (delete != null) delete,
+            TextButton(onPressed: _save, child: const Text('Save')),
+            const SizedBox(width: 8),
+          ],
         ),
-      ),
+        body: SafeArea(
+          child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: _fields(context)),
+        ),
+      );
+    }
+
+    return AlertDialog(
+      title: Text(_title),
+      content: SizedBox(width: context.dialogWidth(560), child: SingleChildScrollView(child: _fields(context))),
       actions: [
-        if (widget.artist != null)
-          TextButton(
-            onPressed: _delete,
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Delete'),
-          ),
+        if (delete != null) delete,
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         FilledButton(onPressed: _save, child: const Text('Save')),
       ],

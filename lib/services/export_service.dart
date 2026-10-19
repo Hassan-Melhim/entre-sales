@@ -1,17 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-
 import '../core/dates.dart';
-import '../data/models.dart';
-import '../data/repositories/report_repository.dart';
+import '../models/artist_statement.dart';
+import '../models/date_range.dart';
+import '../models/monthly_report.dart';
+import '../models/product.dart';
+import '../models/sale_order.dart';
+import 'file_output_service.dart';
 
-/// CSV exports. Files are written to a temporary folder and handed to the
-/// Android share sheet (save to Drive, email, Files, etc.).
+/// CSV exports of inventory, sales, artist payouts and reports.
+/// Delivered with [FileOutputService] (share sheet on Android, a folder on
+/// Windows).
 ///
 /// Amounts are written as plain numbers with a dot (12.50) so spreadsheets
 /// read them as numbers.
@@ -28,30 +28,15 @@ class ExportService {
 
   static String toCsv(List<List<Object?>> rows) => rows.map((r) => r.map(_cell).join(',')).join('\r\n');
 
-  static Future<File> _write(String fileName, Uint8List bytes) async {
-    final dir = await getTemporaryDirectory();
-    final file = File(p.join(dir.path, fileName));
-    await file.writeAsBytes(bytes, flush: true);
-    return file;
-  }
-
-  static Future<void> shareFile(String fileName, Uint8List bytes, {String? text}) async {
-    final file = await _write(fileName, bytes);
-    await Share.shareXFiles([XFile(file.path)], text: text);
-  }
-
   /// UTF-8 with BOM so Excel shows accents correctly.
-  static Future<void> shareCsv(String fileName, List<List<Object?>> rows) {
+  static Future<void> _deliverCsv(String fileName, List<List<Object?>> rows) {
     final bytes = Uint8List.fromList([0xEF, 0xBB, 0xBF, ...utf8.encode(toCsv(rows))]);
-    return shareFile(fileName, bytes);
+    return FileOutputService.deliverBytes(fileName, bytes);
   }
-
-  static String _stamp(DateTime d) =>
-      '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
 
   // ---------------------------------------------------------------- Exports
 
-  static Future<void> shareInventoryCsv(List<Product> products) {
+  static Future<void> exportInventoryCsv(List<Product> products) {
     final rows = <List<Object?>>[
       [
         'Product', 'Artist', 'Category', 'Variant', 'In stock', 'Price before tax', 'Tax %',
@@ -72,10 +57,10 @@ class ExportService {
             v.quantity == 0 ? 'Out of stock' : 'In stock',
           ],
     ];
-    return shareCsv('inventory_${_stamp(DateTime.now())}.csv', rows);
+    return _deliverCsv('inventory_${fileStamp(DateTime.now())}.csv', rows);
   }
 
-  static Future<void> shareSalesCsv(List<SaleOrder> orders, DateRange range) {
+  static Future<void> exportSalesCsv(List<SaleOrder> orders, DateRange range) {
     final rows = <List<Object?>>[
       [
         'Order', 'Date', 'Time', 'Payment', 'Status', 'Workshop session', 'Discount', 'Product', 'Variant',
@@ -87,7 +72,7 @@ class ExportService {
           [
             o.number,
             formatDate(o.createdAt),
-            '${o.createdAt.hour.toString().padLeft(2, '0')}:${o.createdAt.minute.toString().padLeft(2, '0')}',
+            formatTime(o.createdAt),
             o.paymentMethod,
             o.status.label,
             o.calendarEventTitle ?? '',
@@ -107,10 +92,10 @@ class ExportService {
             _money(i.artistPayoutCents),
           ],
     ];
-    return shareCsv('sales_${_stamp(range.start)}-${_stamp(range.lastDay)}.csv', rows);
+    return _deliverCsv('sales_${fileStamp(range.start)}-${fileStamp(range.lastDay)}.csv', rows);
   }
 
-  static Future<void> shareStatementsCsv(List<ArtistStatement> statements, DateRange range) {
+  static Future<void> exportStatementsCsv(List<ArtistStatement> statements, DateRange range) {
     final rows = <List<Object?>>[
       [
         'Artist', 'Legal name', 'Tax ID', 'IBAN', 'Bank', 'Units', 'Sales before tax', 'Store commission',
@@ -132,10 +117,10 @@ class ExportService {
           _money(s.netPayoutCents),
         ],
     ];
-    return shareCsv('artist_payouts_${_stamp(range.start)}-${_stamp(range.lastDay)}.csv', rows);
+    return _deliverCsv('artist_payouts_${fileStamp(range.start)}-${fileStamp(range.lastDay)}.csv', rows);
   }
 
-  static Future<void> shareMonthlyReportCsv(MonthlyReport r) {
+  static Future<void> exportMonthlyReportCsv(MonthlyReport r) {
     final rows = <List<Object?>>[
       ['Monthly report', formatMonth(r.range.start)],
       [],
@@ -181,6 +166,6 @@ class ExportService {
       ['Longest on display (unsold)', 'Artist', 'Days', 'Units'],
       for (final s in r.longestOnDisplay) [s.productName, s.artistName, s.days.toStringAsFixed(0), s.units],
     ];
-    return shareCsv('report_${r.range.start.year}-${r.range.start.month.toString().padLeft(2, '0')}.csv', rows);
+    return _deliverCsv('report_${r.range.start.year}-${r.range.start.month.toString().padLeft(2, '0')}.csv', rows);
   }
 }

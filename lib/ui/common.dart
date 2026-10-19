@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'responsive.dart';
+
 /// Shows loading / error / data for an AsyncValue.
 class AsyncView<T> extends StatelessWidget {
   final AsyncValue<T> value;
@@ -22,6 +24,8 @@ class AsyncView<T> extends StatelessWidget {
   }
 }
 
+/// Page title with action buttons. The actions move under the title when
+/// there is not enough room beside it.
 class PageHeader extends StatelessWidget {
   final String title;
   final List<Widget> actions;
@@ -30,15 +34,26 @@ class PageHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final pad = context.pagePadding;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+      padding: EdgeInsets.fromLTRB(pad, context.isCompact ? 12 : 20, pad, 12),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
             children: [
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.headlineSmall)),
-              ...actions.expand((a) => [const SizedBox(width: 8), a]),
+              Text(title, style: Theme.of(context).textTheme.headlineSmall),
+              if (actions.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: actions,
+                ),
             ],
           ),
           if (bottom != null) ...[const SizedBox(height: 12), bottom!],
@@ -57,13 +72,16 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.outline;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 48, color: color),
-          const SizedBox(height: 12),
-          Text(message, style: TextStyle(color: color), textAlign: TextAlign.center),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 48, color: color),
+            const SizedBox(height: 12),
+            Text(message, style: TextStyle(color: color), textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }
@@ -81,7 +99,7 @@ Future<bool> confirm(BuildContext context, String title, String message, {String
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(title),
-      content: Text(message),
+      content: SizedBox(width: ctx.dialogWidth(420), child: Text(message)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
         FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(action)),
@@ -111,7 +129,13 @@ class Tag extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[Icon(icon, size: 14, color: color), const SizedBox(width: 4)],
-          Text(text, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+          Flexible(
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );
@@ -141,3 +165,35 @@ Future<DateTime?> pickDate(BuildContext context, DateTime initial) => showDatePi
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
     );
+
+/// Label / value pair laid out side by side on wide screens and stacked on
+/// phones (for settings and summaries).
+class InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final double labelWidth;
+  const InfoRow(this.label, this.value, {super.key, this.labelWidth = 260});
+
+  @override
+  Widget build(BuildContext context) {
+    if (context.isCompact) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: Theme.of(context).textTheme.labelLarge),
+            Text(value),
+          ],
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [SizedBox(width: labelWidth, child: Text(label)), Expanded(child: Text(value))],
+      ),
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../models.dart';
+import '../../models/discount.dart';
 
 class DiscountRepository {
   final Database db;
@@ -12,7 +12,7 @@ class DiscountRepository {
   }
 
   Future<void> save(Discount d) async {
-    final data = {'name': d.name, 'percent': d.percent, 'active': d.active ? 1 : 0};
+    final data = d.toMap();
     if (d.id == null) {
       await db.insert('discounts', data);
     } else {

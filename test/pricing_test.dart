@@ -1,5 +1,5 @@
 import 'package:entre_sales/config/business_rules.dart';
-import 'package:entre_sales/core/dates.dart';
+import 'package:entre_sales/models/date_range.dart';
 import 'package:entre_sales/core/pricing.dart';
 import 'package:flutter_test/flutter_test.dart';
 

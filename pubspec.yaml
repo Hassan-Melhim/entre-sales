@@ -16,6 +16,7 @@ dependencies:
 
   # Local SQLite database
   sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.3.4 # SQLite on Windows (for testing on a computer)
   path: ^1.9.0
   path_provider: ^2.1.5
 
@@ -24,7 +25,6 @@ dependencies:
 
   # PDF invoices / reports and sharing exported files
   pdf: ^3.11.3
-  printing: ^5.14.2
   share_plus: ^10.1.4
 
   # Charts for reports

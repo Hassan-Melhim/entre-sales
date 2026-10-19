@@ -1,7 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../../core/dates.dart';
-import '../models.dart';
+import '../../models/calendar_session.dart';
+import '../../models/date_range.dart';
 
 /// Locally cached workshop sessions (from Google Calendar or added by hand).
 class CalendarRepository {
@@ -84,25 +85,4 @@ class CalendarRepository {
         AND EXISTS (SELECT 1 FROM calendar_events e
                     WHERE e.start_at <= orders.created_at AND e.end_at > orders.created_at)''');
   }
-}
-
-/// Simple key/value settings stored in the database.
-class SettingsRepository {
-  final Database db;
-  SettingsRepository(this.db);
-
-  static const calendarId = 'calendar_id';
-  static const calendarAccount = 'calendar_account';
-  static const calendarLastSync = 'calendar_last_sync';
-  static const storeName = 'store_name';
-  static const storeAddress = 'store_address';
-  static const storeTaxId = 'store_tax_id';
-
-  Future<String?> get(String key) async {
-    final rows = await db.query('settings', where: 'key = ?', whereArgs: [key]);
-    return rows.isEmpty ? null : rows.first['value'] as String?;
-  }
-
-  Future<void> set(String key, String? value) =>
-      db.insert('settings', {'key': key, 'value': value}, conflictAlgorithm: ConflictAlgorithm.replace);
 }

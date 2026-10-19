@@ -6,10 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/pricing.dart';
-import '../../data/models.dart';
+import '../../models/artist.dart';
+import '../../models/category_attribute.dart';
+import '../../models/product_category.dart';
+import '../../models/variant.dart';
 import '../../providers.dart';
 import '../artists/artists_screen.dart';
 import '../common.dart';
+import '../responsive.dart';
 
 /// Log a new product, or edit an existing one.
 ///
@@ -24,6 +28,7 @@ class ProductFormScreen extends ConsumerStatefulWidget {
   ConsumerState<ProductFormScreen> createState() => _ProductFormScreenState();
 }
 
+/// Form state for one variant row (text controllers live here).
 class _VariantRow {
   final int? id;
   final Map<String, String> attributes;
@@ -42,7 +47,7 @@ class _VariantRow {
         price = TextEditingController(text: price),
         originalQuantity = id == null ? 0 : quantity;
 
-  String get label => attributes.isEmpty ? 'Standard' : attributes.values.join(' · ');
+  String get label => Variant.labelFor(attributes);
 
   void dispose() {
     quantity.dispose();
@@ -108,7 +113,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         }
       }
     }
-    setState(() => _loading = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
@@ -146,19 +151,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   /// Rows for the current combinations; creates new rows as needed.
-  List<_VariantRow> _currentRows() {
-    final result = <_VariantRow>[];
-    for (final combo in _combinations()) {
-      final k = _key(combo);
-      result.add(_rows.putIfAbsent(k, () => _VariantRow(attributes: combo, quantity: 0)));
-    }
-    return result;
-  }
+  List<_VariantRow> _currentRows() => [
+        for (final combo in _combinations())
+          _rows.putIfAbsent(_key(combo), () => _VariantRow(attributes: combo, quantity: 0)),
+      ];
 
-  void _onCategoryChanged(ProductCategory? c) {
+  void _onCategoryChanged(ProductCategory c) {
     setState(() {
       _category = c;
-      _values.removeWhere((k, _) => !(c?.attributes.any((a) => a.name == k) ?? false));
+      _values.removeWhere((k, _) => !c.attributes.any((a) => a.name == k));
     });
   }
 
@@ -179,16 +180,17 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         return;
       }
       int? priceOverride;
-      if (_perVariantPricing) {
-        priceOverride = r.price.text.trim().isEmpty ? null : parseEurosToCents(r.price.text);
-        if (r.price.text.trim().isNotEmpty && priceOverride == null) {
+      if (_perVariantPricing && r.price.text.trim().isNotEmpty) {
+        priceOverride = parseEurosToCents(r.price.text);
+        if (priceOverride == null) {
           showMessage(context, 'Price for "${r.label}" is not valid', error: true);
           return;
         }
       }
       // New variants and added stock take the delivery date (a restock
       // overwrites the date of arrival). Otherwise the old date is kept.
-      final arrival = (r.id == null || q > r.originalQuantity) ? _deliveryDate : (r.originalArrival ?? _deliveryDate);
+      final arrival =
+          (r.id == null || q > r.originalQuantity) ? _deliveryDate : (r.originalArrival ?? _deliveryDate);
       variants.add(Variant(
         id: r.id,
         attributes: r.attributes,
@@ -237,20 +239,28 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       final fresh = categories.where((c) => c.id == _category!.id);
       if (fresh.isNotEmpty) _category = fresh.first;
     }
+    final pad = context.pagePadding;
+    final compact = context.isCompact;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEdit ? 'Edit product' : 'Log new product'),
         actions: [
           if (_isEdit)
-            TextButton(
-              onPressed: _delete,
-              style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-              child: const Text('Delete'),
-            ),
+            compact
+                ? IconButton(
+                    tooltip: 'Delete',
+                    onPressed: _delete,
+                    icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+                  )
+                : TextButton(
+                    onPressed: _delete,
+                    style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                    child: const Text('Delete'),
+                  ),
           const SizedBox(width: 8),
           FilledButton.icon(onPressed: _save, icon: const Icon(Icons.check), label: const Text('Save')),
-          const SizedBox(width: 16),
+          SizedBox(width: pad),
         ],
       ),
       body: _loading
@@ -258,85 +268,48 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           : Form(
               key: _form,
               child: ListView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(pad),
                 children: [
-                  _section('1. Product'),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextFormField(
-                          controller: _name,
-                          decoration: const InputDecoration(labelText: 'Product name *'),
-                          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButtonFormField<int>(
-                          value: artists.any((a) => a.id == _artistId) ? _artistId : null,
-                          decoration: const InputDecoration(labelText: 'Artist *'),
-                          items: [for (final a in artists) DropdownMenuItem(value: a.id, child: Text(a.name))],
-                          onChanged: (v) => setState(() => _artistId = v),
-                          validator: (v) => v == null ? 'Required' : null,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'New artist',
-                        icon: const Icon(Icons.person_add_alt),
-                        onPressed: () async {
-                          final id = await showArtistForm(context, ref);
-                          if (id != null) setState(() => _artistId = id);
-                        },
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: InkWell(
-                          onTap: () async {
-                            final d = await pickDate(context, _deliveryDate);
-                            if (d != null) setState(() => _deliveryDate = d);
-                          },
-                          child: InputDecorator(
-                            decoration: InputDecoration(
-                              labelText: _isEdit ? 'Restock date (for added units)' : 'Date of delivery *',
-                              suffixIcon: const Icon(Icons.calendar_today_outlined),
-                            ),
-                            child: Text(formatDate(_deliveryDate)),
+                  // Keeps the form readable on very wide screens.
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _section('1. Product'),
+                          _productFields(artists),
+                          const SizedBox(height: 24),
+                          _section('2. Category'),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final c in categories)
+                                ChoiceChip(
+                                  label: Text(c.name),
+                                  selected: _category?.id == c.id,
+                                  onSelected: (_) => _onCategoryChanged(c),
+                                ),
+                            ],
                           ),
-                        ),
+                          if (_category != null) ...[
+                            const SizedBox(height: 16),
+                            ..._category!.attributes.map(_attributeEditor),
+                            if (_category!.attributes.isEmpty)
+                              Text('This category has no extra fields. Add some in Settings → Categories.',
+                                  style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+                            const SizedBox(height: 24),
+                            _section('3. Price'),
+                            _priceSection(),
+                            const SizedBox(height: 24),
+                            _section('4. Quantities'),
+                            _variantTable(),
+                          ],
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  _section('2. Category'),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final c in categories)
-                        ChoiceChip(
-                          label: Text(c.name),
-                          selected: _category?.id == c.id,
-                          onSelected: (_) => _onCategoryChanged(c),
-                        ),
-                    ],
-                  ),
-                  if (_category != null) ...[
-                    const SizedBox(height: 16),
-                    ..._category!.attributes.map(_attributeEditor),
-                    if (_category!.attributes.isEmpty)
-                      Text('This category has no extra fields. Add some in Settings → Categories.',
-                          style: TextStyle(color: Theme.of(context).colorScheme.outline)),
-                    const SizedBox(height: 24),
-                    _section('3. Price'),
-                    _priceSection(),
-                    const SizedBox(height: 24),
-                    _section('4. Quantities'),
-                    _variantTable(),
-                  ],
                 ],
               ),
             ),
@@ -347,6 +320,56 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         padding: const EdgeInsets.only(bottom: 12),
         child: Text(title, style: Theme.of(context).textTheme.titleMedium),
       );
+
+  Widget _productFields(List<Artist> artists) {
+    return ResponsiveFields(
+      minRowWidth: 760,
+      flex: const [3, 3, 2],
+      children: [
+        TextFormField(
+          controller: _name,
+          decoration: const InputDecoration(labelText: 'Product name *'),
+          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<int>(
+                value: artists.any((a) => a.id == _artistId) ? _artistId : null,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Artist *'),
+                items: [for (final a in artists) DropdownMenuItem(value: a.id!, child: Text(a.name))],
+                onChanged: (v) => setState(() => _artistId = v),
+                validator: (v) => v == null ? 'Required' : null,
+              ),
+            ),
+            IconButton(
+              tooltip: 'New artist',
+              icon: const Icon(Icons.person_add_alt),
+              onPressed: () async {
+                final id = await showArtistForm(context);
+                if (id != null) setState(() => _artistId = id);
+              },
+            ),
+          ],
+        ),
+        InkWell(
+          onTap: () async {
+            final d = await pickDate(context, _deliveryDate);
+            if (d != null) setState(() => _deliveryDate = d);
+          },
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: _isEdit ? 'Restock date (for added units)' : 'Date of delivery *',
+              suffixIcon: const Icon(Icons.calendar_today_outlined),
+            ),
+            child: Text(formatDate(_deliveryDate)),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _attributeEditor(CategoryAttribute attr) {
     final chosen = _values.putIfAbsent(attr.name, () => []);
@@ -378,13 +401,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final v in chosen)
-                  InputChip(label: Text(v), onDeleted: () => setState(() => chosen.remove(v))),
+                for (final v in chosen) InputChip(label: Text(v), onDeleted: () => setState(() => chosen.remove(v))),
               ],
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: 360,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
               child: TextField(
                 controller: _freeText.putIfAbsent(attr.name, () => TextEditingController()),
                 decoration: InputDecoration(
@@ -418,8 +440,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             SizedBox(
               width: 220,
@@ -431,14 +455,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 validator: (v) => parseEurosToCents(v ?? '') == null ? 'Enter a price' : null,
               ),
             ),
-            const SizedBox(width: 16),
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                base == null
-                    ? 'Tax ${formatPercent(tax)}'
-                    : '+ ${formatPercent(tax)} tax = ${formatCents(Pricing.unitPriceWithTax(base, tax))} on the shelf',
-              ),
+            Text(
+              base == null
+                  ? 'Tax ${formatPercent(tax)}'
+                  : '+ ${formatPercent(tax)} tax = ${formatCents(Pricing.unitPriceWithTax(base, tax))} on the shelf',
             ),
           ],
         ),
@@ -454,7 +474,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
           controlAffinity: ListTileControlAffinity.leading,
-          title: Text('Custom tax rate for this product (category rate is ${formatPercent(_category!.taxPercent)})'),
+          title: const Text('Custom tax rate for this product'),
+          subtitle: Text('Category rate is ${formatPercent(_category!.taxPercent)}'),
           value: _customTax,
           onChanged: (v) => setState(() => _customTax = v ?? false),
         ),
@@ -476,53 +497,73 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     );
   }
 
+  Widget _quantityField(_VariantRow r) => TextField(
+        controller: r.quantity,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'Quantity'),
+      );
+
+  Widget _priceField(_VariantRow r) => TextField(
+        controller: r.price,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        decoration: InputDecoration(
+          labelText: 'Price before tax (€)',
+          hintText: _price.text.isEmpty ? null : 'Default ${_price.text}',
+        ),
+      );
+
   Widget _variantTable() {
     final rows = _currentRows();
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_category!.attributes.isNotEmpty && _combinations().first.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text('No ${_category!.attributes.map((a) => a.name.toLowerCase()).join(' / ')} chosen: '
-                    'the product is logged as a single standard item.'),
-              ),
-            for (final r in rows)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(child: Text(r.label, style: const TextStyle(fontWeight: FontWeight.w500))),
-                    SizedBox(
-                      width: 120,
-                      child: TextField(
-                        controller: r.quantity,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Quantity'),
-                      ),
-                    ),
-                    if (_perVariantPricing) ...[
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 180,
-                        child: TextField(
-                          controller: r.price,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: InputDecoration(
-                            labelText: 'Price before tax (€)',
-                            hintText: _price.text.isEmpty ? null : 'Default ${_price.text}',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+        child: LayoutBuilder(builder: (context, c) {
+          final wide = c.maxWidth >= 520;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_category!.attributes.isNotEmpty && _combinations().first.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text('No ${_category!.attributes.map((a) => a.name.toLowerCase()).join(' / ')} chosen: '
+                      'the product is logged as a single standard item.'),
                 ),
-              ),
-          ],
-        ),
+              for (final r in rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: wide
+                      // Wide: label | quantity | price on one line.
+                      ? Row(
+                          children: [
+                            Expanded(child: Text(r.label, style: const TextStyle(fontWeight: FontWeight.w500))),
+                            SizedBox(width: 120, child: _quantityField(r)),
+                            if (_perVariantPricing) ...[
+                              const SizedBox(width: 12),
+                              SizedBox(width: 200, child: _priceField(r)),
+                            ],
+                          ],
+                        )
+                      // Narrow: label above, fields share the width.
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(r.label, style: const TextStyle(fontWeight: FontWeight.w500)),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Expanded(child: _quantityField(r)),
+                                if (_perVariantPricing) ...[
+                                  const SizedBox(width: 12),
+                                  Expanded(flex: 2, child: _priceField(r)),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                ),
+            ],
+          );
+        }),
       ),
     );
   }

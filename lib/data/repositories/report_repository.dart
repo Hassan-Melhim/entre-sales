@@ -3,142 +3,17 @@ import 'package:sqflite/sqflite.dart';
 import '../../config/business_rules.dart';
 import '../../core/dates.dart';
 import '../../core/pricing.dart';
-import '../models.dart';
+import '../../models/artist.dart';
+import '../../models/artist_statement.dart';
+import '../../models/breakdown.dart';
+import '../../models/category_turnover.dart';
+import '../../models/date_range.dart';
+import '../../models/monthly_report.dart';
+import '../../models/sale_order.dart';
+import '../../models/shelf_life_row.dart';
+import '../../models/statement_line.dart';
 
-// =========================================================== Artist invoices
-
-class StatementSaleLine {
-  final DateTime date;
-  final String orderNumber;
-  final String productName;
-  final String variantLabel;
-  final int quantity;
-
-  /// Before tax, the amount the commission was calculated on.
-  final int baseCents;
-  final double commissionPercent;
-  final int payoutCents;
-
-  const StatementSaleLine({
-    required this.date,
-    required this.orderNumber,
-    required this.productName,
-    required this.variantLabel,
-    required this.quantity,
-    required this.baseCents,
-    required this.commissionPercent,
-    required this.payoutCents,
-  });
-}
-
-/// What the store owes one artist for one period.
-class ArtistStatement {
-  final Artist artist;
-  final DateRange range;
-  final List<StatementSaleLine> sales;
-
-  /// Refunds made during this period (shown as negative lines).
-  final List<StatementSaleLine> refunds;
-
-  const ArtistStatement({required this.artist, required this.range, required this.sales, required this.refunds});
-
-  int get soldUnits => sales.fold(0, (s, l) => s + l.quantity) - refunds.fold(0, (s, l) => s + l.quantity);
-  int get salesBaseCents => sales.fold(0, (s, l) => s + l.baseCents) - refunds.fold(0, (s, l) => s + l.baseCents);
-  int get payoutCents => sales.fold(0, (s, l) => s + l.payoutCents) - refunds.fold(0, (s, l) => s + l.payoutCents);
-  int get commissionCents => salesBaseCents - payoutCents;
-
-  double get residentTaxPercent => artist.isSpainResident ? BusinessRules.spainResidentArtistTaxPercent : 0;
-  int get residentTaxCents =>
-      artist.isSpainResident ? Pricing.residentTax(payoutCents, BusinessRules.spainResidentArtistTaxPercent) : 0;
-  int get netPayoutCents => Pricing.artistNetPayout(payoutCents: payoutCents, spainResident: artist.isSpainResident);
-
-  bool get isEmpty => sales.isEmpty && refunds.isEmpty;
-}
-
-// ============================================================ Monthly report
-
-class Breakdown {
-  final String label;
-  int units = 0;
-  int revenueCents = 0;
-  int profitCents = 0;
-  Breakdown(this.label);
-}
-
-class ShelfLifeRow {
-  final String productName;
-  final String artistName;
-  final String categoryName;
-  final double days;
-  final int units;
-  const ShelfLifeRow(this.productName, this.artistName, this.categoryName, this.days, this.units);
-}
-
-class CategoryTurnover {
-  final String category;
-  final int soldUnits;
-  final int inStockUnits;
-  final double? avgDaysToSell;
-  const CategoryTurnover(this.category, this.soldUnits, this.inStockUnits, this.avgDaysToSell);
-
-  /// Share of available units that sold this month.
-  double get sellThrough => (soldUnits + inStockUnits) == 0 ? 0 : soldUnits / (soldUnits + inStockUnits);
-}
-
-class MonthlyReport {
-  final DateRange range;
-  final int orderCount;
-  final int unitsSold;
-  final int unitsRefunded;
-  final int revenueCents; // customer paid, VAT included, net of refunds
-  final int vatCents;
-  final int discountCents;
-  final int refundsCents;
-  final int artistPayoutCents;
-  final int artistResidentTaxCents;
-  final int profitCents;
-  final List<Breakdown> byCategory;
-  final List<Breakdown> byArtist;
-  final List<Breakdown> byGender;
-  final List<Breakdown> topProducts;
-  final List<int> revenueByHour; // 24 entries
-  final List<int> ordersByHour; // 24 entries
-  final List<int> revenueByWeekday; // 7 entries, Monday first
-  final List<int> revenueByDay; // one per day of month
-  final double? avgDaysToSell;
-  final List<ShelfLifeRow> fastestSellers;
-  final List<ShelfLifeRow> slowestSellers;
-  final List<ShelfLifeRow> longestOnDisplay; // unsold stock, days since arrival
-  final List<CategoryTurnover> turnover;
-
-  const MonthlyReport({
-    required this.range,
-    required this.orderCount,
-    required this.unitsSold,
-    required this.unitsRefunded,
-    required this.revenueCents,
-    required this.vatCents,
-    required this.discountCents,
-    required this.refundsCents,
-    required this.artistPayoutCents,
-    required this.artistResidentTaxCents,
-    required this.profitCents,
-    required this.byCategory,
-    required this.byArtist,
-    required this.byGender,
-    required this.topProducts,
-    required this.revenueByHour,
-    required this.ordersByHour,
-    required this.revenueByWeekday,
-    required this.revenueByDay,
-    required this.avgDaysToSell,
-    required this.fastestSellers,
-    required this.slowestSellers,
-    required this.longestOnDisplay,
-    required this.turnover,
-  });
-}
-
+/// Artist settlements and the monthly report.
 class ReportRepository {
   final Database db;
   ReportRepository(this.db);
@@ -162,16 +37,16 @@ class ReportRepository {
       WHERE oi.artist_id = ? AND r.created_at >= ? AND r.created_at < ?
       ORDER BY r.created_at''', [artist.id, toDb(range.start), toDb(range.end)]);
 
-    StatementSaleLine line(Map<String, Object?> r) {
+    StatementLine line(Map<String, Object?> r) {
       final qty = r['quantity'] as int;
       // Commission base: before tax. If the store absorbs discounts, the
       // artist is credited on the undiscounted base price.
       final base = BusinessRules.discountReducesArtistPayout
           ? r['base_cents'] as int
           : (r['unit_base_cents'] as int) * qty;
-      return StatementSaleLine(
+      return StatementLine(
         date: fromDb(r['created_at'] as String),
-        orderNumber: '#${(r['order_id'] as int).toString().padLeft(5, '0')}',
+        orderNumber: SaleOrder.formatOrderNumber(r['order_id'] as int),
         productName: r['product_name'] as String,
         variantLabel: r['variant_label'] as String,
         quantity: qty,
@@ -263,10 +138,7 @@ class ReportRepository {
     final byGender = <String, Breakdown>{};
     final byProduct = <String, Breakdown>{};
     void add(Map<String, Breakdown> map, String key, int units, int revenue, int profit) {
-      final b = map.putIfAbsent(key, () => Breakdown(key));
-      b.units += units;
-      b.revenueCents += revenue;
-      b.profitCents += profit;
+      map.putIfAbsent(key, () => Breakdown(key)).add(units: units, revenueCents: revenue, profitCents: profit);
     }
 
     for (final r in items) {

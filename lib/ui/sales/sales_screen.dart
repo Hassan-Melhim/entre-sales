@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/dates.dart';
 import '../../core/money.dart';
-import '../../data/models.dart';
+import '../../models/date_range.dart';
+import '../../models/order_filter.dart';
+import '../../models/order_status.dart';
+import '../../models/sale_order.dart';
 import '../../providers.dart';
 import '../../services/export_service.dart';
 import '../../services/pdf_service.dart';
 import '../common.dart';
+import '../responsive.dart';
 
 /// Sales history: refunds, receipts and tagging sales with workshop sessions.
 class SalesScreen extends ConsumerStatefulWidget {
@@ -28,33 +32,25 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
       lastDate: DateTime(2100),
       initialDateRange: DateTimeRange(start: _range.start, end: _range.lastDay),
     );
-    if (picked != null) {
-      setState(() => _range = DateRange(startOfDay(picked.start), endOfDayExclusive(picked.end)));
-    }
+    if (picked != null) setState(() => _range = DateRange.days(picked.start, picked.end));
   }
 
   @override
   Widget build(BuildContext context) {
-    final filter = OrderFilter(range: _range, query: _query);
-    final orders = ref.watch(ordersProvider(filter));
+    final orders = ref.watch(ordersProvider(OrderFilter(range: _range, query: _query)));
+    final pad = context.pagePadding;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PageHeader(
           title: 'Sales',
           actions: [
-            OutlinedButton.icon(
-              onPressed: _pickRange,
-              icon: const Icon(Icons.date_range),
-              label: Text(_range.label),
-            ),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final list = await ref.read(salesRepoProvider).orders(range: _range);
-                await ExportService.shareSalesCsv(list, _range);
-              },
-              icon: const Icon(Icons.file_download_outlined),
-              label: const Text('Export CSV'),
+            OutlinedButton.icon(onPressed: _pickRange, icon: const Icon(Icons.date_range), label: Text(_range.label)),
+            AdaptiveButton(
+              icon: Icons.file_download_outlined,
+              label: 'Export CSV',
+              onPressed: () async =>
+                  ExportService.exportSalesCsv(await ref.read(salesRepoProvider).orders(range: _range), _range),
             ),
           ],
           bottom: SearchField(hint: 'Search by product', onChanged: (v) => setState(() => _query = v)),
@@ -63,25 +59,18 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
           child: AsyncView(
             value: orders,
             builder: (list) {
-              if (list.isEmpty) return const EmptyState(icon: Icons.receipt_long_outlined, message: 'No sales in this period');
+              if (list.isEmpty) {
+                return const EmptyState(icon: Icons.receipt_long_outlined, message: 'No sales in this period');
+              }
               final total = list.fold(0, (s, o) => s + o.totalCents);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                    child: Text('${list.length} sales · ${formatCents(total)} (before refunds)',
-                        style: TextStyle(color: Theme.of(context).colorScheme.outline)),
-                  ),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                      itemCount: list.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (context, i) => OrderCard(order: list[i]),
-                    ),
-                  ),
-                ],
+              return ListView.separated(
+                padding: EdgeInsets.fromLTRB(pad, 0, pad, 24),
+                itemCount: list.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, i) => i == 0
+                    ? Text('${list.length} sales · ${formatCents(total)} (before refunds)',
+                        style: TextStyle(color: Theme.of(context).colorScheme.outline))
+                    : OrderCard(order: list[i - 1]),
               );
             },
           ),
@@ -102,18 +91,17 @@ class OrderCard extends ConsumerWidget {
     return Card(
       child: ExpansionTile(
         shape: const Border(),
-        title: Row(
+        title: Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Text('${o.number} · ${formatDateTime(o.createdAt)}', style: const TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(width: 8),
             if (o.status != OrderStatus.completed) Tag(o.status.label, color: scheme.error),
-            if (o.calendarEventTitle != null) ...[
-              const SizedBox(width: 6),
-              Flexible(child: Tag(o.calendarEventTitle!, color: Colors.deepPurple, icon: Icons.event)),
-            ],
+            if (o.calendarEventTitle != null) Tag(o.calendarEventTitle!, color: Colors.deepPurple, icon: Icons.event),
           ],
         ),
-        subtitle: Text('${o.items.fold(0, (s, i) => s + i.quantity)} item(s) · ${o.paymentMethod}'
+        subtitle: Text('${o.units} item(s) · ${o.paymentMethod}'
             '${o.discountName != null ? ' · ${o.discountName} discount' : ''}'),
         trailing: Text(formatCents(o.totalCents), style: Theme.of(context).textTheme.titleMedium),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -128,30 +116,34 @@ class OrderCard extends ConsumerWidget {
               trailing: Text(formatCents(i.totalCents)),
             ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final store = await ref.read(storeInfoProvider.future);
-                  await PdfService.share(await PdfService.receipt(o, store), 'receipt_${o.id}.pdf');
-                },
-                icon: const Icon(Icons.picture_as_pdf_outlined),
-                label: const Text('Receipt PDF'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => _tagSession(context, ref),
-                icon: const Icon(Icons.event_outlined),
-                label: Text(o.calendarEventId == null ? 'Tag workshop session' : 'Change session'),
-              ),
-              if (o.status != OrderStatus.refunded)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(foregroundColor: scheme.error),
-                  onPressed: () => _refund(context, ref),
-                  icon: const Icon(Icons.undo),
-                  label: const Text('Refund'),
+                  onPressed: () async {
+                    final store = await ref.read(storeInfoProvider.future);
+                    await PdfService.deliver(await PdfService.receipt(o, store), 'receipt_${o.id}.pdf');
+                  },
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  label: const Text('Receipt PDF'),
                 ),
-            ],
+                OutlinedButton.icon(
+                  onPressed: () => _tagSession(context, ref),
+                  icon: const Icon(Icons.event_outlined),
+                  label: Text(o.calendarEventId == null ? 'Tag workshop session' : 'Change session'),
+                ),
+                if (o.status != OrderStatus.refunded)
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(foregroundColor: scheme.error),
+                    onPressed: () => _refund(context, ref),
+                    icon: const Icon(Icons.undo),
+                    label: const Text('Refund'),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
@@ -201,35 +193,37 @@ class OrderCard extends ConsumerWidget {
         builder: (ctx, setLocal) => AlertDialog(
           title: Text('Refund items from ${order.number}'),
           content: SizedBox(
-            width: 480,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final i in refundable)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text('${i.productName} · ${i.variantLabel}'),
-                    subtitle: Text('${i.refundableQuantity} can be refunded'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: qty[i.id]! > 0 ? () => setLocal(() => qty[i.id] = qty[i.id]! - 1) : null,
-                        ),
-                        Text('${qty[i.id]}'),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: qty[i.id]! < i.refundableQuantity
-                              ? () => setLocal(() => qty[i.id] = qty[i.id]! + 1)
-                              : null,
-                        ),
-                      ],
+            width: ctx.dialogWidth(480),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final i in refundable)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text('${i.productName} · ${i.variantLabel}'),
+                      subtitle: Text('${i.refundableQuantity} can be refunded'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline),
+                            onPressed: qty[i.id]! > 0 ? () => setLocal(() => qty[i.id] = qty[i.id]! - 1) : null,
+                          ),
+                          Text('${qty[i.id]}'),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: qty[i.id]! < i.refundableQuantity
+                                ? () => setLocal(() => qty[i.id] = qty[i.id]! + 1)
+                                : null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 8),
-                const Text('Refunded items go back into stock immediately.'),
-              ],
+                  const SizedBox(height: 8),
+                  const Text('Refunded items go back into stock immediately.'),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -265,6 +259,7 @@ class _SessionChoice {
 class _DialogLabel extends StatelessWidget {
   final String text;
   const _DialogLabel(this.text);
+
   @override
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),

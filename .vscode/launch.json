@@ -1,0 +1,26 @@
+{
+  // Run configurations for VS Code (Run and Debug panel, F5).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Entre Sales (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "windows"
+    },
+    {
+      "name": "Entre Sales (tablet / selected device)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "Entre Sales (release mode, selected device)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "release"
+    }
+  ]
+}

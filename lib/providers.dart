@@ -1,15 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'core/dates.dart';
-import 'data/models.dart';
 import 'data/repositories/calendar_repository.dart';
 import 'data/repositories/discount_repository.dart';
 import 'data/repositories/inventory_repository.dart';
 import 'data/repositories/report_repository.dart';
 import 'data/repositories/sales_repository.dart';
+import 'data/repositories/settings_repository.dart';
+import 'models/artist.dart';
+import 'models/artist_statement.dart';
+import 'models/calendar_session.dart';
+import 'models/date_range.dart';
+import 'models/discount.dart';
+import 'models/monthly_report.dart';
+import 'models/order_filter.dart';
+import 'models/product.dart';
+import 'models/product_category.dart';
+import 'models/product_filter.dart';
+import 'models/sale_order.dart';
+import 'models/store_info.dart';
 import 'services/calendar_service.dart';
-import 'services/pdf_service.dart';
 
 /// The open database. Overridden in main() once the database is opened.
 final databaseProvider = Provider<Database>((ref) => throw UnimplementedError('Database not opened'));
@@ -46,42 +56,10 @@ final discountsProvider = FutureProvider<List<Discount>>((ref) {
   return ref.watch(discountRepoProvider).discounts();
 });
 
-class ProductFilter {
-  final String query;
-  final int? artistId;
-  final int? categoryId;
-  const ProductFilter({this.query = '', this.artistId, this.categoryId});
-
-  @override
-  bool operator ==(Object other) =>
-      other is ProductFilter && other.query == query && other.artistId == artistId && other.categoryId == categoryId;
-
-  @override
-  int get hashCode => Object.hash(query, artistId, categoryId);
-}
-
 final productsProvider = FutureProvider.family<List<Product>, ProductFilter>((ref, f) {
   ref.watch(dataRevisionProvider);
   return ref.watch(inventoryRepoProvider).products(query: f.query, artistId: f.artistId, categoryId: f.categoryId);
 });
-
-class OrderFilter {
-  final DateRange? range;
-  final int? sessionId;
-  final String query;
-  const OrderFilter({this.range, this.sessionId, this.query = ''});
-
-  @override
-  bool operator ==(Object other) =>
-      other is OrderFilter &&
-      other.range?.start == range?.start &&
-      other.range?.end == range?.end &&
-      other.sessionId == sessionId &&
-      other.query == query;
-
-  @override
-  int get hashCode => Object.hash(range?.start, range?.end, sessionId, query);
-}
 
 final ordersProvider = FutureProvider.family<List<SaleOrder>, OrderFilter>((ref, f) {
   ref.watch(dataRevisionProvider);
@@ -116,23 +94,15 @@ final currentSessionProvider = FutureProvider<CalendarSession?>((ref) {
   return ref.watch(calendarRepoProvider).sessionAt(DateTime.now());
 });
 
+/// Keyed by the first day of the month.
 final monthlyReportProvider = FutureProvider.family<MonthlyReport, DateTime>((ref, month) {
   ref.watch(dataRevisionProvider);
   return ref.watch(reportRepoProvider).monthly(DateRange.month(month.year, month.month));
 });
 
-class StatementRequest {
-  final DateRange range;
-  const StatementRequest(this.range);
-  @override
-  bool operator ==(Object other) =>
-      other is StatementRequest && other.range.start == range.start && other.range.end == range.end;
-  @override
-  int get hashCode => Object.hash(range.start, range.end);
-}
-
-final statementsProvider = FutureProvider.family<List<ArtistStatement>, StatementRequest>((ref, req) async {
+/// Artist settlements for a payout period (only artists with activity).
+final statementsProvider = FutureProvider.family<List<ArtistStatement>, DateRange>((ref, range) async {
   ref.watch(dataRevisionProvider);
   final artists = await ref.watch(artistsProvider.future);
-  return ref.watch(reportRepoProvider).allStatements(artists, req.range);
+  return ref.watch(reportRepoProvider).allStatements(artists, range);
 });

@@ -4,7 +4,11 @@ import 'package:sqflite/sqflite.dart';
 
 import '../../config/business_rules.dart';
 import '../../core/dates.dart';
-import '../models.dart';
+import '../../models/artist.dart';
+import '../../models/category_attribute.dart';
+import '../../models/product.dart';
+import '../../models/product_category.dart';
+import '../../models/variant.dart';
 
 /// Artists, categories, products and variants.
 class InventoryRepository {

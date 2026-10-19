@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/database.dart';
 import 'providers.dart';
+import 'ui/app_messenger.dart';
 import 'ui/app_shell.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
+  // Picks the right SQLite implementation for Android or Windows.
   final db = await AppDatabase.open();
   runApp(ProviderScope(
     overrides: [databaseProvider.overrideWithValue(db)],
@@ -28,9 +25,12 @@ class EntreApp extends StatelessWidget {
     return MaterialApp(
       title: 'Entre Sales',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: appMessengerKey,
       theme: ThemeData(
         colorScheme: scheme,
         useMaterial3: true,
+        // Comfortable touch targets on the tablet, compact with a mouse.
+        visualDensity: VisualDensity.adaptivePlatformDensity,
         inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder(), isDense: true),
         cardTheme: const CardThemeData(margin: EdgeInsets.zero),
       ),

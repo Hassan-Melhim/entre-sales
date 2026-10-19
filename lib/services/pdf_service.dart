@@ -3,22 +3,20 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../core/dates.dart';
 import '../core/money.dart';
-import '../data/models.dart';
-import '../data/repositories/report_repository.dart';
+import '../models/artist_statement.dart';
+import '../models/breakdown.dart';
+import '../models/calendar_session.dart';
+import '../models/monthly_report.dart';
+import '../models/order_status.dart';
+import '../models/sale_order.dart';
+import '../models/store_info.dart';
+import 'file_output_service.dart';
 
-/// Store details printed at the top of every PDF (edited in Settings).
-class StoreInfo {
-  final String name;
-  final String? address;
-  final String? taxId;
-  const StoreInfo({required this.name, this.address, this.taxId});
-}
-
-/// Builds PDF receipts, invoices and reports, and opens the share sheet.
+/// Builds PDF receipts, invoices and reports.
+/// Use [deliver] to hand the result to the user (share sheet / folder).
 class PdfService {
   PdfService._();
 
@@ -31,7 +29,7 @@ class PdfService {
     return _theme = pw.ThemeData.withFont(base: regular, bold: bold);
   }
 
-  static Future<void> share(Uint8List bytes, String filename) => Printing.sharePdf(bytes: bytes, filename: filename);
+  static Future<void> deliver(Uint8List bytes, String filename) => FileOutputService.deliverBytes(filename, bytes);
 
   // ------------------------------------------------------------ Building blocks
 
@@ -257,7 +255,7 @@ class PdfService {
           [
             for (final (o, i) in items)
               [
-                '${o.createdAt.hour.toString().padLeft(2, '0')}:${o.createdAt.minute.toString().padLeft(2, '0')}',
+                formatTime(o.createdAt),
                 o.number,
                 '${i.productName} · ${i.variantLabel}',
                 i.categoryName,

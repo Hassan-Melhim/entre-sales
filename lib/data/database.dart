@@ -1,11 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart' show databaseFactoryFfi, sqfliteFfiInit;
 
 import '../config/business_rules.dart';
 
 /// Opens the local SQLite database and creates the schema on first launch.
+///
+/// Android uses the sqflite plugin. Windows and Linux (for testing on a
+/// computer) use sqflite_common_ffi, which talks to SQLite directly.
 ///
 /// Money columns end in `_cents` (integer euro cents).
 /// Rate columns end in `_percent` (35.0 = 35%).
@@ -16,21 +22,48 @@ class AppDatabase {
   static const String fileName = 'entre_sales.db';
   static const int schemaVersion = 1;
 
-  static Future<Database> open() async {
-    final dir = await getDatabasesPath();
-    return openDatabase(
-      p.join(dir, fileName),
-      version: schemaVersion,
-      onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
-      onCreate: (db, version) async {
-        await _createSchema(db);
-        await _seed(db);
-      },
-      // Future schema changes: add `onUpgrade` steps here, one per version.
+  /// Windows and Linux need the FFI implementation; everything else uses
+  /// the regular sqflite plugin.
+  static bool get usesFfi => Platform.isWindows || Platform.isLinux;
+
+  static DatabaseFactory get _platformFactory {
+    if (usesFfi) {
+      sqfliteFfiInit();
+      return databaseFactoryFfi;
+    }
+    return databaseFactorySqflitePlugin;
+  }
+
+  /// Opens (and if needed creates) the database.
+  ///
+  /// [factory] and [path] are only passed by tests (in-memory database).
+  static Future<Database> open({DatabaseFactory? factory, String? path}) async {
+    final f = factory ?? _platformFactory;
+    return f.openDatabase(
+      path ?? await databaseFilePath(),
+      options: OpenDatabaseOptions(
+        version: schemaVersion,
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) async {
+          await _createSchema(db);
+          await _seed(db);
+        },
+        // Future schema changes: add `onUpgrade` steps here, one per version.
+      ),
     );
   }
 
-  static Future<String> databaseFilePath() async => p.join(await getDatabasesPath(), fileName);
+  /// Where the database file lives.
+  /// - Android: the app's private databases folder.
+  /// - Windows: %APPDATA%\com.entre\entre_sales\entre_sales.db
+  static Future<String> databaseFilePath() async {
+    if (usesFfi) {
+      final dir = await getApplicationSupportDirectory();
+      await dir.create(recursive: true);
+      return p.join(dir.path, fileName);
+    }
+    return p.join(await _platformFactory.getDatabasesPath(), fileName);
+  }
 
   static Future<void> _createSchema(Database db) async {
     final batch = db.batch();

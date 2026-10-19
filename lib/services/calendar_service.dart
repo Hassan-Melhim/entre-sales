@@ -1,23 +1,43 @@
+import 'dart:io';
+
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart' as gcal;
 
 import '../config/business_rules.dart';
 import '../core/dates.dart';
-import '../data/models.dart';
+import '../core/exceptions.dart';
 import '../data/repositories/calendar_repository.dart';
+import '../data/repositories/settings_repository.dart';
+import '../models/calendar_session.dart';
+import '../models/date_range.dart';
 
 /// Reads workshop sessions from the store's Google Calendar.
 ///
 /// Requires a one-time Google Cloud setup (see README → "Google Calendar").
 /// Works offline after a sync: sessions are cached in the local database.
+///
+/// Google sign-in only exists on Android and iOS. On Windows every call
+/// throws [UnsupportedPlatformException]; sessions can still be added by hand.
 class CalendarService {
   final CalendarRepository calendarRepo;
   final SettingsRepository settings;
 
   CalendarService(this.calendarRepo, this.settings);
 
-  final GoogleSignIn _signIn = GoogleSignIn(scopes: [gcal.CalendarApi.calendarReadonlyScope]);
+  /// True where Google sign-in works.
+  static bool get isSupported => Platform.isAndroid || Platform.isIOS;
+
+  // Created on first use, so nothing Google-related runs on Windows.
+  GoogleSignIn? _googleSignIn;
+
+  GoogleSignIn get _signIn {
+    if (!isSupported) {
+      throw UnsupportedPlatformException(
+          'Google Calendar sync only works on the Android tablet. On this computer, add sessions by hand.');
+    }
+    return _googleSignIn ??= GoogleSignIn(scopes: [gcal.CalendarApi.calendarReadonlyScope]);
+  }
 
   /// How far back and forward each sync looks.
   static const Duration syncPast = Duration(days: 365);

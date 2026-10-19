@@ -2,24 +2,25 @@
 
 Inventory, point of sale, artist settlements and monthly reports for the Entre concept store.
 Runs fully offline on one Android tablet; all data is stored locally in SQLite.
+It also runs on Windows for testing (everything except Google Calendar sync), and the layout adapts
+to phones, tablets (portrait or landscape) and desktop windows.
 
 ## First-time setup
 
 **Full step-by-step guide (install, tablet, Google Calendar, updates): [SETUP.md](SETUP.md).**
 
-Short version — platform folders (`android/`) are not committed yet. Generate them once:
+Short version: platform folders are not committed. Generate them once, then run:
 
-```bash
-git clone https://github.com/Hassan-Melhim/entre-sales.git
-cd entre-sales
-flutter create --platforms=android --org com.entre .   # keeps existing files
+```powershell
+flutter create --platforms=android,windows --org com.entre .   # keeps existing files
 flutter pub get
-flutter test        # money calculations
-flutter analyze     # please send me any errors
-flutter run
+flutter test             # money formulas + the whole database layer
+flutter analyze
+flutter run -d windows   # on your PC
+flutter run -d <tablet-id>   # on the tablet (see `flutter devices`)
 ```
 
-Then add internet access (only used for Google Calendar sync) to
+For Android, add internet access (only used for Google Calendar sync) to
 `android/app/src/main/AndroidManifest.xml`, just above `<application`:
 
 ```xml
@@ -99,16 +100,30 @@ Workshops that weren't on the calendar can be added by hand in **Invoices → Wo
 ```
 lib/
   config/business_rules.dart   ← money rules
-  core/                        money, dates, pricing formulas
-  data/database.dart           SQLite schema + seed categories
-  data/models.dart
-  data/repositories/           queries (inventory, sales, calendar, reports)
-  services/                    PDF, CSV export, Google Calendar
+  core/                        formatting, dates, pricing formulas, exceptions
+  models/                      one file per data class (Artist, Product, Variant, SaleOrder, …)
+  data/database.dart           SQLite schema + seed categories (Android and Windows)
+  data/repositories/           queries: inventory, sales, calendar, settings, discounts, reports
+  services/                    PDF, CSV export, file saving/sharing, Google Calendar
   ui/                          screens (Riverpod)
-test/pricing_test.dart         checks the money formulas
+  ui/responsive.dart           breakpoints and adaptive layout helpers
+test/
+  pricing_test.dart            money formulas
+  database_test.dart           sales, stock, refunds, settlements, reports on a real SQLite database
 ```
+
+### Screen sizes
+
+| Width | Example | Navigation | Layout |
+|---|---|---|---|
+| < 600 dp | phone, narrow window | menu drawer | single column, cart opens as a sheet |
+| 600–999 dp | tablet portrait | rail with labels | forms in rows where they fit |
+| ≥ 1000 dp | tablet landscape, PC | extended rail | cart beside products, side-by-side panels |
 
 ## Backup
 
-Everything lives only on the tablet. Use **Settings → Backup → Share database backup** regularly
+Everything lives only on the tablet. Use **Settings → Backup → Save database backup** regularly
 (e.g. save it to Google Drive).
+
+On Windows, PDFs, CSVs and backups are saved to `Documents\Entre Sales`, and the test database lives in
+`%APPDATA%\com.entre\entre_sales`. It is completely separate from the tablet's data.
