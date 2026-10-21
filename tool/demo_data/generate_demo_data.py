@@ -64,6 +64,13 @@ COFFEE = {'Café', 'Matcha', 'Earl Grey Cake (slice)', 'Ginger Cookie'}
 # Demo-only: one product with a manual tax rate, to show the feature.
 TAX_OVERRIDE = {('Matilde Cunha', 'Photo Strip'): 10.0}
 
+# Demo-only: products with their own store commission (the artist's rate is
+# unchanged), to show the per-product commission override.
+COMMISSION_OVERRIDE = {
+    ('Cora', 'Ceramic Butter Dish'): 30.0,
+    ('Ana Drucker', 'Bookend'): 40.0,
+}
+
 WORKSHOPS = [
     ('Ceramics workshop with Cora', 'Cora'),
     ('Risograph printing workshop – Jumbo Press', 'Jumbo Press'),
@@ -206,6 +213,7 @@ def build_catalog(rows):
         prod['base'] = base
         prod['per_variant'] = len(bases) > 1
         prod['tax_override'] = TAX_OVERRIDE.get((prod['artist'], pname))
+        prod['commission_override'] = COMMISSION_OVERRIDE.get((prod['artist'], pname))
         out.append(prod)
     return out
 
@@ -545,6 +553,7 @@ def main():
         products=[dict(
             artist=p['artist'], name=p['name'], category=p['category'], base=p['base'],
             per_variant=p['per_variant'], tax_override=p['tax_override'],
+            commission_override=p['commission_override'],
             variants=[dict(attrs=v['attrs'], qty=v['initial'], final=v['target'],
                            price=v['base'] if p['per_variant'] and v['base'] != p['base'] else None,
                            arrival=iso(v['arrival'])) for v in p['variants']],

@@ -1,5 +1,5 @@
 name: entre_sales
-description: Inventory, POS, artist invoicing and reporting for Entre concept store.
+description: Inventory, POS, artist invoicing and reporting for Entre Salas concept store.
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -14,9 +14,11 @@ dependencies:
   # State management (no code generation needed)
   flutter_riverpod: ^2.6.1
 
-  # Local SQLite database
-  sqflite: ^2.4.2
-  sqflite_common_ffi: ^2.3.4 # SQLite on Windows (for testing on a computer)
+  # Local SQLite database (until the shared Supabase database is set up)
+  sqflite_common: ^2.5.4 # the common Database API used by the repositories
+  sqflite: ^2.4.2 # Android / iOS / macOS app
+  sqflite_common_ffi: ^2.3.4 # Windows / Linux, and tests
+  sqflite_common_ffi_web: ^1.0.0 # website: SQLite saved in the browser
   path: ^1.9.0
   path_provider: ^2.1.5
 
@@ -26,6 +28,7 @@ dependencies:
   # PDF invoices / reports and sharing exported files
   pdf: ^3.11.3
   share_plus: ^10.1.4
+  web: ^1.1.0 # browser downloads on the website
 
   # Charts for reports
   fl_chart: ^0.70.2

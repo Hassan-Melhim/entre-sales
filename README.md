@@ -1,50 +1,59 @@
 # Entre Sales
 
-Inventory, point of sale, artist settlements and monthly reports for the Entre concept store.
-Runs fully offline on one Android tablet; all data is stored locally in SQLite.
-It also runs on Windows for testing (everything except Google Calendar sync), and the layout adapts
-to phones, tablets (portrait or landscape) and desktop windows.
+Inventory, point of sale, artist payouts and sales reports for the Entre Salas concept store.
+
+The app is moving to a **website** (planned at entresalas.shop) used from the store's iPad and the owners'
+MacBooks, with no app-store fees. For now the website keeps its data **in the browser of each device**
+(mock/demo data). A shared online database (Supabase) comes next, so every device will see the same data.
+The same code still runs as a Windows or Android app for testing.
+
+The layout adapts to phones, tablets (portrait or landscape) and computer windows, in light or dark mode.
 
 ## First-time setup
 
-**Full step-by-step guide (install, tablet, Google Calendar, updates): [SETUP.md](SETUP.md).**
+**Full step-by-step guide: [SETUP.md](SETUP.md).**
 
 Short version: platform folders are not committed. Generate them once, then run:
 
 ```powershell
-flutter create --platforms=android,windows --org com.entre .   # keeps existing files
+flutter create --platforms=web,windows,android --org com.entre .   # keeps existing files
 flutter pub get
+dart run sqflite_common_ffi_web:setup   # once: puts the browser SQLite files in web/
 flutter test             # money formulas + the whole database layer
 flutter analyze
-flutter run -d windows   # on your PC
-flutter run -d <tablet-id>   # on the tablet (see `flutter devices`)
-```
-
-For Android, add internet access (only used for Google Calendar sync) to
-`android/app/src/main/AndroidManifest.xml`, just above `<application`:
-
-```xml
-<uses-permission android:name="android.permission.INTERNET"/>
+flutter run -d chrome    # the website, on your computer
+flutter run -d windows   # the Windows app
 ```
 
 Requires Flutter 3.27 or newer.
 
 ## Where to change the money rules
 
-Everything that decides how money is split is in **`lib/config/business_rules.dart`**,
+Everything that decides how money is split is in **`lib/domain/business_rules.dart`**,
 each rule marked with `►►►`:
 
 | Rule | Current value |
 |---|---|
-| Default store commission | 35% (per-artist override in the Artists screen) |
+| Default store commission | 35% |
 | Tax for Spain-resident artists | 10%, **added on top** of the payout (placeholder: confirm with your accountant) |
 | Discounts | Absorbed by the store; artist is paid on the full price |
 | Store profit | Customer paid (VAT incl.) − artist payout − resident tax added |
 | Workshop keyword | Calendar events whose title contains "workshop" |
 | Gender options | Male, Female, Queer |
 
-VAT per category (21%, books 4%, café 0%) is edited in the app: **Settings → Categories**.
-A single product can have its own tax rate (checkbox when logging the product).
+### Commission (changed often, so it is one tap away)
+
+The commission charged on a sale is chosen in this order:
+
+1. **the product's own commission**, if set: the **%** button on each product in **Inventory**, or the
+   field next to the price in the product form. The artist's rate is not touched;
+2. otherwise **the artist's commission**: the **%** button on each artist in **Artists**;
+3. otherwise the **store default** (35%).
+
+Every sale stores the rate it used, so changing a commission never changes past sales or payouts.
+
+VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, café 0%) and under
+**Tax (advanced)** in the product form for a one-off rate.
 
 ## How the app works
 
@@ -52,16 +61,22 @@ A single product can have its own tax rate (checkbox when logging the product).
   optional Friends & Family discount, complete. Stock is re-checked when the sale is saved, so an item
   that is not in stock cannot be sold. Sales during a workshop session are tagged automatically.
 - **Inventory** – every product with its variants grouped together. Out-of-stock products sit at the
-  bottom with a warning. Log a product: name → artist → delivery date → category → the category's fields
-  (e.g. sizes) → price → quantity per variant. Restocking overwrites the date of arrival.
+  bottom with a warning. Restocking overwrites the date of arrival.
 - **Artists** – contact and billing details (legal name, NIF, IBAN, bank), gender, residency, commission.
 - **Sales** – history by date range, receipt PDFs, refunds (items go straight back into stock),
   and manual tagging of sales with a workshop session.
-- **Invoices** – artist payouts for 1st–15th / 16th–end (or the 15 days up to any date), with a PDF per
-  artist and a CSV of all; workshop session invoices as PDF.
-- **Reports** – monthly profit, revenue, VAT, payouts, sales by category / artist / gender, best hours and
-  weekdays, best sellers, turnover, days-to-sell and items longest on display. Export as PDF or CSV.
-- **Settings** – store details for PDFs, categories and their fields, discounts, Google Calendar, backup.
+- **Invoices** – artist payouts for a **calendar month** (with previous / next) or **any date range**.
+  Export as PDF or CSV, either a **summary** (one line per artist) or **detailed** (every item each
+  artist sold and every refund: one PDF with a page per artist, or one CSV row per item).
+  Workshop session invoices as PDF.
+- **Reports** – for a **day, month, quarter (Q1–Q4), year or custom range**: profit, revenue, VAT, payouts,
+  a timeline (by hour, day, week or month depending on the length), sales by category / artist / gender,
+  best hours and weekdays, best sellers, turnover, days-to-sell and items longest on display.
+  Export as PDF or CSV.
+- **Settings** – appearance (system / light / dark), store details for PDFs, categories and their fields,
+  discounts, Google Calendar, backup, demo data.
+
+Every date filter accepts the same day as start and end (that whole day).
 
 ### How the amounts are calculated
 
@@ -78,22 +93,24 @@ With the Friends & Family discount the customer pays 95 + 21% = 114.95 €; the 
 
 Refunds are dated on the day of the refund and are deducted from the artist payout of that period.
 
-## Google Calendar
+## The website (current state)
 
-The app reads the store's calendar to know when workshops happen. One-time setup (about 15 minutes):
+| | Now | With Supabase (next step) |
+|---|---|---|
+| Where data lives | In each browser, on each device separately | One shared database for all devices |
+| Demo data | **Settings → Demo data** on each device | Loaded once |
+| Backup | Not available (the browser keeps the data) | Automatic daily backups |
+| Google Calendar | Add workshop sessions by hand | Synced on the server |
+| Sign-in | None | Each owner has their own login (all with the same rights) |
 
-1. Go to <https://console.cloud.google.com>, create a project (e.g. "Entre Sales").
-2. **APIs & Services → Library** → enable **Google Calendar API**.
-3. **APIs & Services → OAuth consent screen** → External, add the store's Google account as a test user.
-4. **Credentials → Create credentials → OAuth client ID → Android**:
-   - Package name: `com.entre.entre_sales`
-   - SHA-1: run `cd android && ./gradlew signingReport` and copy the SHA-1 of the variant you install.
-5. In the app: **Settings → Google Calendar → Connect**, sign in with the store account, then **Sync now**.
-   If workshops are on a secondary calendar, paste its Calendar ID (Google Calendar → calendar settings →
-   "Integrate calendar").
+Because of this, **do not use the website for real sales yet**: clearing the browser's data deletes it.
 
-Sessions are cached on the tablet, so tagging works offline; sync again whenever you're online.
-Workshops that weren't on the calendar can be added by hand in **Invoices → Workshop sessions**.
+On the iPad: open the site in Safari → Share → **Add to Home Screen**, and it opens full screen like an app.
+
+## Google Calendar (Android app only, for now)
+
+The Android app can read the store's calendar to know when workshops happen; see SETUP.md Part 10.
+On the website and on Windows, add workshops by hand in **Invoices → Workshop sessions**.
 
 ## Demo data
 
@@ -110,10 +127,11 @@ Workshops that weren't on the calendar can be added by hand in **Invoices → Wo
   a few sales tagged by hand). Stock at the end matches the sheet; negative quantities became 0.
 - placeholder artist details: mixed genders, residency and commissions; billing details are obviously
   fake (`ES00 0000…`, "Demo Bank").
-- one demo-only manual tax rate (10% on Matilde Cunha's *Photo Strip*) to show that feature.
+- demo-only examples of the overrides: a 10% tax rate on Matilde Cunha's *Photo Strip*, and a product
+  commission of 30% on Cora's *Ceramic Butter Dish* and 40% on Ana Drucker's *Bookend*.
 
-The button is shown on computers and in debug builds, and hidden in the release build installed on the
-store's tablet so real data can't be wiped by accident.
+The button is shown on the website, on computers and in debug builds, and hidden in a release app on a
+phone or tablet so real data can't be wiped by accident.
 
 The history is replayed through the app's own sale and refund code, so all amounts are calculated exactly
 like real sales. `test/demo_data_test.dart` loads the file and checks every final stock level against the
@@ -130,35 +148,54 @@ How each row is grouped and categorised is listed in `tool/demo_data/catalog_map
 
 ## Code layout
 
+The code is split in three layers. Each layer only uses the ones above it in this list:
+
 ```
 lib/
-  config/business_rules.dart   ← money rules
-  core/                        formatting, dates, pricing formulas, exceptions
-  models/                      one file per data class (Artist, Product, Variant, SaleOrder, …)
-  data/database.dart           SQLite schema + seed categories (Android and Windows)
-  data/repositories/           queries: inventory, sales, calendar, settings, discounts, reports
-  services/                    PDF, CSV export, file saving/sharing, Google Calendar
-  ui/                          screens (Riverpod)
-  ui/responsive.dart           breakpoints and adaptive layout helpers
-tool/demo_data/                builds assets/demo/demo_data.json from the inventory sheet
+  core/            formatting of money and dates, asset paths (no Flutter widgets, no database)
+  domain/          the business: what the store does, independent of any database or screen
+    business_rules.dart      ← money rules
+    pricing.dart             VAT, commission, discount, refund formulas
+    models/                  one plain data class per file (Artist, Product, SaleOrder, ReportPeriod, …)
+    repositories/            interfaces: what data the app needs (ProductRepository, SalesRepository, …)
+    services/                report and artist-statement calculations
+  data/            how it is done today
+    sqlite/                  SQLite schema + one Sqlite…Repository per interface
+                             (browser, Windows, Android picked automatically)
+    export/                  PDF and CSV files; saving / downloading / sharing them
+    calendar/                Google Calendar sync
+  presentation/    what the user sees
+    providers.dart           the only place that picks the implementations (Riverpod)
+    theme/                   colours (light / dark), spacing and size tokens, breakpoints
+    widgets/                 shared widgets
+    screens/                 one folder per tab
+tool/demo_data/    builds assets/demo/demo_data.json from the inventory sheet
+web/               the website's page, icons and manifest
 test/
-  pricing_test.dart            money formulas
-  demo_data_test.dart          loads the demo data and checks it against the sheet
-  database_test.dart           sales, stock, refunds, settlements, reports on a real SQLite database
+  pricing_test.dart          money formulas, date ranges, report periods
+  database_test.dart         sales, stock, commission priority, refunds, statements, reports, upgrades
+  demo_data_test.dart        loads the demo data and checks it against the sheet
+  widget_test.dart           widgets in light and dark mode
 ```
+
+**Switching to Supabase** means writing one `Supabase…Repository` per interface in
+`lib/domain/repositories/` and changing the providers in `lib/presentation/providers.dart`.
+The screens, formulas and reports do not change.
+
+Sizes, spacing and breakpoints come from `lib/presentation/theme/app_tokens.dart` and
+`breakpoints.dart`; colours come from the theme, so everything follows light and dark mode.
 
 ### Screen sizes
 
 | Width | Example | Navigation | Layout |
 |---|---|---|---|
 | < 600 dp | phone, narrow window | menu drawer | single column, cart opens as a sheet |
-| 600–999 dp | tablet portrait | rail with labels | forms in rows where they fit |
-| ≥ 1000 dp | tablet landscape, PC | extended rail | cart beside products, side-by-side panels |
+| 600–999 dp | iPad portrait | rail with labels | forms in rows where they fit |
+| ≥ 1000 dp | iPad landscape, MacBook | extended rail | cart beside products, side-by-side panels |
 
 ## Backup
 
-Everything lives only on the tablet. Use **Settings → Backup → Save database backup** regularly
-(e.g. save it to Google Drive).
-
-On Windows, PDFs, CSVs and backups are saved to `Documents\Entre Sales`, and the test database lives in
-`%APPDATA%\com.entre\entre_sales`. It is completely separate from the tablet's data.
+- **Website**: nothing to back up yet; it only holds test data (see above).
+- **Windows / Android app**: **Settings → Backup → Save database backup**. On Windows, PDFs, CSVs and
+  backups are saved to `Documents\Entre Sales`, and the database lives in
+  `%APPDATA%\com.entre\entre_sales`.

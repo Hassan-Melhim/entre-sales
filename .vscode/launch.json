@@ -3,6 +3,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Entre Sales (website in Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome"
+    },
+    {
       "name": "Entre Sales (Windows)",
       "request": "launch",
       "type": "dart",

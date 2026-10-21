@@ -4,27 +4,34 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:entre_sales/config/business_rules.dart';
-import 'package:entre_sales/data/database.dart';
-import 'package:entre_sales/data/repositories/calendar_repository.dart';
-import 'package:entre_sales/data/repositories/inventory_repository.dart';
-import 'package:entre_sales/data/repositories/report_repository.dart';
-import 'package:entre_sales/data/repositories/sales_repository.dart';
-import 'package:entre_sales/models/date_range.dart';
-import 'package:entre_sales/services/demo_data_service.dart';
+import 'package:entre_sales/core/assets.dart';
+import 'package:entre_sales/data/sqlite/app_database.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_artist_repository.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_data_admin_repository.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_product_repository.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_report_repository.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_sales_repository.dart';
+import 'package:entre_sales/data/sqlite/repositories/sqlite_session_repository.dart';
+import 'package:entre_sales/domain/business_rules.dart';
+import 'package:entre_sales/domain/models/date_range.dart';
+import 'package:entre_sales/domain/models/product_filter.dart';
+import 'package:entre_sales/domain/models/report_period.dart';
+import 'package:entre_sales/domain/services/report_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   late Database db;
   late Map<String, dynamic> demo;
-  final json = File(DemoDataService.assetPath).readAsStringSync();
+  late ReportService reports;
+  final json = File(AppAssets.demoData).readAsStringSync();
 
   setUpAll(() async {
     sqfliteFfiInit();
     demo = jsonDecode(json) as Map<String, dynamic>;
     db = await AppDatabase.open(factory: databaseFactoryFfi, path: inMemoryDatabasePath);
-    await DemoDataService.load(db, json);
+    await SqliteDataAdminRepository(db).loadDemoData(json);
+    reports = ReportService(SqliteReportRepository(db));
   });
 
   tearDownAll(() => db.close());
@@ -40,7 +47,7 @@ void main() {
   });
 
   test('every variant ends at the quantity from the inventory sheet', () async {
-    final products = await InventoryRepository(db).products();
+    final products = await SqliteProductRepository(db).products();
     final byKey = {for (final p in products) '${p.artistName}|${p.name}': p};
     var checked = 0;
     for (final p in (demo['products'] as List).cast<Map<String, dynamic>>()) {
@@ -57,51 +64,74 @@ void main() {
 
   test('sales, refunds and sessions were all recorded', () async {
     final events = (demo['events'] as List).cast<Map<String, dynamic>>();
-    final orders = await SalesRepository(db).orders();
+    final orders = await SqliteSalesRepository(db).orders();
     expect(orders.length, events.where((e) => e['t'] == 'sale').length);
     final refunds = (await db.rawQuery('SELECT COUNT(*) AS n FROM refunds')).first['n'] as int;
     expect(refunds, events.where((e) => e['t'] == 'refund').length);
     expect(orders.where((o) => o.discountName == 'Friends & Family'), isNotEmpty);
     expect(orders.where((o) => o.eventTagSource == 'auto'), isNotEmpty);
     expect(orders.where((o) => o.eventTagSource == 'manual'), isNotEmpty);
-    expect((await CalendarRepository(db).sessions()).length, (demo['sessions'] as List).length);
+    expect((await SqliteSessionRepository(db).sessions()).length, (demo['sessions'] as List).length);
   });
 
   test('a known price: a 25 € poster is 20.66 € before VAT', () async {
-    final poster = (await InventoryRepository(db).products(query: 'Risograph Poster')).single;
+    final poster = (await SqliteProductRepository(db).products(const ProductFilter(query: 'Risograph Poster'))).single;
     expect(poster.basePriceCents, 2066);
     expect(poster.priceWithTaxFor(poster.variants.first), 2500);
   });
 
+  test('demo products with their own commission keep the artist rate unchanged', () async {
+    final custom = [
+      for (final p in (demo['products'] as List).cast<Map<String, dynamic>>())
+        if (p['commission_override'] != null) p,
+    ];
+    expect(custom, isNotEmpty);
+    final products = await SqliteProductRepository(db).products();
+    for (final p in custom) {
+      final product = products.firstWhere((x) => x.artistName == p['artist'] && x.name == p['name']);
+      expect(product.commissionPercent, (p['commission_override'] as num).toDouble());
+      final siblings = products.where((x) => x.artistId == product.artistId && !x.hasCustomCommission);
+      for (final s in siblings) {
+        expect(s.commissionPercent, s.artistCommissionPercent);
+      }
+    }
+  });
+
   test('store-owned items pay no artist, café items have 0% VAT', () async {
-    final reports = ReportRepository(db);
-    final artists = await InventoryRepository(db).artists();
+    final artists = await SqliteArtistRepository(db).artists();
     final store = artists.firstWhere((a) => a.name == 'Entre Salas');
-    final range = DateRange(DateTime(2026, 6, 1), DateTime(2026, 10, 19));
-    final statement = await reports.artistStatement(store, range);
+    final statement = await reports.statement(store, DateRange.days(DateTime(2026, 6, 1), DateTime(2026, 10, 18)));
     expect(statement.sales, isNotEmpty);
     expect(statement.payoutCents, 0);
 
-    final cafe = (await InventoryRepository(db).products(query: 'Café')).firstWhere((p) => p.name == 'Café');
+    final cafe = (await SqliteProductRepository(db).products(const ProductFilter(query: 'Café')))
+        .firstWhere((p) => p.name == 'Café');
     expect(cafe.taxPercent, 0);
   });
 
-  test('monthly report and biweekly payouts have data', () async {
-    final reports = ReportRepository(db);
-    final aug = await reports.monthly(DateRange.month(2026, 8));
+  test('monthly, quarterly and yearly reports have data', () async {
+    final aug = await reports.salesReport(ReportPeriod.containing(PeriodKind.month, DateTime(2026, 8)));
     expect(aug.orderCount, greaterThan(100));
     expect(aug.profitCents, greaterThan(0));
     expect(aug.byGender.length, greaterThan(2));
     expect(aug.avgDaysToSell, isNotNull);
 
-    final artists = await InventoryRepository(db).artists();
-    final statements = await reports.allStatements(artists, DateRange.biweeklyContaining(DateTime(2026, 9, 10)));
-    expect(statements.length, greaterThan(5));
+    final q3 = await reports.salesReport(ReportPeriod.containing(PeriodKind.quarter, DateTime(2026, 8)));
+    expect(q3.orderCount, greaterThan(aug.orderCount));
+    final year = await reports.salesReport(ReportPeriod.containing(PeriodKind.year, DateTime(2026)));
+    expect(year.orderCount, greaterThan(q3.orderCount));
+    expect(year.timeline.length, 12);
+  });
+
+  test('monthly payouts cover several artists', () async {
+    final artists = await SqliteArtistRepository(db).artists();
+    final statements = await reports.statements(artists, DateRange.month(2026, 9));
+    expect(statements.where((s) => !s.isEmpty).length, greaterThan(5));
   });
 
   test('loading twice gives the same result', () async {
-    final before = (await SalesRepository(db).orders()).length;
-    await DemoDataService.load(db, json);
-    expect((await SalesRepository(db).orders()).length, before);
+    final before = (await SqliteSalesRepository(db).orders()).length;
+    await SqliteDataAdminRepository(db).loadDemoData(json);
+    expect((await SqliteSalesRepository(db).orders()).length, before);
   });
 }
