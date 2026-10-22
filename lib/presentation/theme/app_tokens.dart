@@ -58,6 +58,7 @@ class AppSizes {
   static const double infoLabel = 260;
   static const double iconSmall = 16;
   static const double iconTag = 14;
+  static const double iconLarge = 48; // empty states, error screens
   static const double emptyStateIcon = 48;
 }
 
