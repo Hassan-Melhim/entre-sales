@@ -68,7 +68,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             children: [
               SearchField(hint: 'Search by product or artist', onChanged: (v) => setState(() => _query = v)),
               DropdownButtonFormField<int?>(
-                value: _artistId,
+                initialValue: _artistId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Artist'),
                 items: [
@@ -78,7 +78,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 onChanged: (v) => setState(() => _artistId = v),
               ),
               DropdownButtonFormField<int?>(
-                value: _categoryId,
+                initialValue: _categoryId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Category'),
                 items: [

@@ -25,7 +25,7 @@ flutter run -d chrome    # the website, on your computer
 flutter run -d windows   # the Windows app
 ```
 
-Requires Flutter 3.27 or newer.
+Requires Flutter 3.35 or newer.
 
 ## Where to change the money rules
 

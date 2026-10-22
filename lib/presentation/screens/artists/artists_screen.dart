@@ -222,7 +222,7 @@ class _ArtistFormState extends ConsumerState<_ArtistForm> {
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.m),
               child: DropdownButtonFormField<String>(
-                value: _gender,
+                initialValue: _gender,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Gender (for sales analysis)'),
                 items: [for (final g in BusinessRules.genders) DropdownMenuItem(value: g, child: Text(g))],

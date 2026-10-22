@@ -334,7 +334,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           children: [
             Expanded(
               child: DropdownButtonFormField<int>(
-                value: artists.any((a) => a.id == _artistId) ? _artistId : null,
+                // initialValue is only read once: the key rebuilds the field when
+                // the code picks the artist (after "add artist").
+                key: ValueKey(_artistId),
+                initialValue: artists.any((a) => a.id == _artistId) ? _artistId : null,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Artist *'),
                 items: [for (final a in artists) DropdownMenuItem(value: a.id!, child: Text(a.name))],

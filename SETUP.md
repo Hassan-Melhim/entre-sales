@@ -13,7 +13,7 @@ Commands go in the **VS Code terminal** (*Terminal → New Terminal*, which open
 ## Part 1 — Install the tools (once per computer)
 
 1. **Git**: <https://git-scm.com/download/win> (default options are fine).
-2. **Flutter 3.27 or newer**: follow <https://docs.flutter.dev/get-started/install/windows/desktop>.
+2. **Flutter 3.35 or newer**: follow <https://docs.flutter.dev/get-started/install/windows/desktop>.
    It installs the Flutter SDK and explains the next two items.
 3. **Visual Studio 2022** (the full *Visual Studio*, not VS Code), needed to build Windows apps:
    - Download the free *Community* edition from <https://visualstudio.microsoft.com/downloads/>.
