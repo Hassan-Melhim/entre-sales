@@ -30,12 +30,12 @@ class SalesReportBuilder {
     final today = now ?? DateTime.now();
 
     // --- Totals
-    final refundsTotal = refunds.fold(0, (s, r) => s + r.totalCents);
-    final revenue = orders.fold(0, (s, o) => s + o.totalCents) - refundsTotal;
-    final vat = orders.fold(0, (s, o) => s + o.taxCents) - refunds.fold(0, (s, r) => s + r.taxCents);
-    final discounts = orders.fold(0, (s, o) => s + o.discountCents);
-    final unitsRefunded = refunds.fold(0, (s, r) => s + r.quantity);
-    final unitsSold = sold.fold(0, (s, i) => s + i.quantity) - unitsRefunded;
+    final refundsTotal = refunds.fold<int>(0, (s, r) => s + r.totalCents);
+    final revenue = orders.fold<int>(0, (s, o) => s + o.totalCents) - refundsTotal;
+    final vat = orders.fold<int>(0, (s, o) => s + o.taxCents) - refunds.fold<int>(0, (s, r) => s + r.taxCents);
+    final discounts = orders.fold<int>(0, (s, o) => s + o.discountCents);
+    final unitsRefunded = refunds.fold<int>(0, (s, r) => s + r.quantity);
+    final unitsSold = sold.fold<int>(0, (s, i) => s + i.quantity) - unitsRefunded;
 
     // --- Artist payouts, per artist (needed for the Spain-resident tax)
     final payoutByArtist = <int, int>{};

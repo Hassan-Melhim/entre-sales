@@ -159,7 +159,7 @@ class _ArtistPayoutsState extends ConsumerState<_ArtistPayouts> {
               if (list.isEmpty) {
                 return const EmptyState(icon: Icons.request_quote_outlined, message: 'No artist sales in this period');
               }
-              final totalToPay = list.fold(0, (s, x) => s + x.netPayoutCents);
+              final totalToPay = list.fold<int>(0, (s, x) => s + x.netPayoutCents);
               return ListView(
                 padding: EdgeInsets.fromLTRB(pad, 0, pad, AppSpacing.xl),
                 children: [
@@ -505,7 +505,7 @@ class SessionDetailScreen extends ConsumerWidget {
       body: AsyncView(
         value: orders,
         builder: (list) {
-          final total = list.fold(0, (s, o) => s + o.totalCents);
+          final total = list.fold<int>(0, (s, o) => s + o.totalCents);
           return ListView(
             padding: EdgeInsets.all(pad),
             children: [

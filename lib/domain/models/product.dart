@@ -48,7 +48,7 @@ class Product {
   double get commissionPercent => commissionPercentOverride ?? artistCommissionPercent;
   bool get hasCustomCommission => commissionPercentOverride != null;
 
-  int get totalStock => variants.fold(0, (sum, v) => sum + v.quantity);
+  int get totalStock => variants.fold<int>(0, (sum, v) => sum + v.quantity);
   bool get isOutOfStock => totalStock == 0;
 
   /// Price before tax for a variant (respects the per-variant pricing checkbox).

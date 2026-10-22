@@ -254,7 +254,7 @@ class PdfService {
     required bool detailed,
   }) async {
     final doc = pw.Document(theme: await _loadTheme());
-    final total = statements.fold(0, (s, x) => s + x.netPayoutCents);
+    final total = statements.fold<int>(0, (s, x) => s + x.netPayoutCents);
     doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: _pageMargin,
@@ -299,8 +299,8 @@ class PdfService {
   static Future<ExportFile> sessionReport(CalendarSession session, List<SaleOrder> orders, StoreInfo store) async {
     final doc = pw.Document(theme: await _loadTheme());
     final items = [for (final o in orders) for (final i in o.items) (o, i)];
-    final total = orders.fold(0, (s, o) => s + o.totalCents);
-    final tax = orders.fold(0, (s, o) => s + o.taxCents);
+    final total = orders.fold<int>(0, (s, o) => s + o.totalCents);
+    final tax = orders.fold<int>(0, (s, o) => s + o.taxCents);
     final byMethod = <String, int>{};
     for (final o in orders) {
       byMethod[o.paymentMethod] = (byMethod[o.paymentMethod] ?? 0) + o.totalCents;
@@ -312,7 +312,7 @@ class PdfService {
       build: (ctx) => [
         _header(store, 'Session sales', session.title),
         pw.Text('${formatDateTime(session.start)} – ${formatDateTime(session.end)}'),
-        pw.Text('${orders.length} orders · ${items.fold(0, (s, x) => s + x.$2.quantity)} items'),
+        pw.Text('${orders.length} orders · ${items.fold<int>(0, (s, x) => s + x.$2.quantity)} items'),
         pw.SizedBox(height: 12),
         _table(
           ['Time', 'Order', 'Product', 'Category', 'Qty', 'Tax', 'Total', 'Status'],

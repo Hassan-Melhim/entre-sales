@@ -66,7 +66,7 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
             value: orders,
             builder: (list) {
               if (list.isEmpty) return const EmptyState(icon: Icons.receipt_long_outlined, message: 'No sales in this period');
-              final total = list.fold(0, (s, o) => s + o.totalCents);
+              final total = list.fold<int>(0, (s, o) => s + o.totalCents);
               return ListView.separated(
                 padding: EdgeInsets.fromLTRB(pad, 0, pad, AppSpacing.xl),
                 itemCount: list.length + 1,

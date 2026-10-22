@@ -364,7 +364,7 @@ class _Bars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final maxV = values.fold(0, (m, v) => v > m ? v : m);
+    final maxV = values.fold<int>(0, (m, v) => v > m ? v : m);
     final muted = Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurfaceVariant);
     return LayoutBuilder(builder: (context, c) {
       final plotWidth = c.maxWidth - AppSizes.chartAxisWidth;
@@ -442,7 +442,7 @@ class _BreakdownBars extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     if (items.isEmpty) return const Text('No data');
-    final maxV = items.fold(0, (m, b) => b.revenueCents > m ? b.revenueCents : m);
+    final maxV = items.fold<int>(0, (m, b) => b.revenueCents > m ? b.revenueCents : m);
     final numbersStyle = Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
     const barHeight = AppSpacing.m + AppSpacing.xxs;
 

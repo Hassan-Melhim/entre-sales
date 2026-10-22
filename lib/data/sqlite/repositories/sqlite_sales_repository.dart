@@ -64,7 +64,7 @@ class SqliteSalesRepository implements SalesRepository {
 
     // 2. Totals.
     final computed = lines.map((l) => l.amounts(discountPercent)).toList();
-    int sum(int Function(LineAmounts a) f) => computed.fold(0, (s, a) => s + f(a));
+    int sum(int Function(LineAmounts a) f) => computed.fold<int>(0, (s, a) => s + f(a));
 
     // 3. Workshop session running now?
     final ts = toDb(now);

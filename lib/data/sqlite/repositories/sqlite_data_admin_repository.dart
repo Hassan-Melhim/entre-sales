@@ -201,7 +201,7 @@ class SqliteDataAdminRepository implements DataAdminRepository {
     return DemoLoadResult(
       artists: artistIds.length,
       products: products.length,
-      variants: products.fold(0, (s, p) => s + p.variants.length),
+      variants: products.fold<int>(0, (s, p) => s + p.variants.length),
       sales: saleCount,
       refunds: refundCount,
       restocks: restockCount,

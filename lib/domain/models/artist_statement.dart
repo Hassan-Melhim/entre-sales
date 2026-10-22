@@ -15,7 +15,7 @@ class ArtistStatement {
 
   const ArtistStatement({required this.artist, required this.range, required this.sales, required this.refunds});
 
-  int _sum(List<StatementLine> l, int Function(StatementLine) f) => l.fold(0, (s, x) => s + f(x));
+  int _sum(List<StatementLine> l, int Function(StatementLine) f) => l.fold<int>(0, (s, x) => s + f(x));
 
   int get soldUnits => _sum(sales, (l) => l.quantity) - _sum(refunds, (l) => l.quantity);
   int get salesBaseCents => _sum(sales, (l) => l.baseCents) - _sum(refunds, (l) => l.baseCents);

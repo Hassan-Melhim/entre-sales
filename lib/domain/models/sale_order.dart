@@ -43,5 +43,5 @@ class SaleOrder {
 
   static String formatOrderNumber(int id) => '#${id.toString().padLeft(5, '0')}';
 
-  int get units => items.fold(0, (s, i) => s + i.quantity);
+  int get units => items.fold<int>(0, (s, i) => s + i.quantity);
 }
