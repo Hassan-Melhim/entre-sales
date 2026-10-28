@@ -137,6 +137,13 @@ python tool/demo_data/generate_demo_data.py path\to\ES_Inventory.xlsx   # → de
 python tool/demo_data/make_demo_sql.py                                   # → load_demo_data.sql
 ```
 
+## Moving the real data in
+
+`migration/Entre Sales - data import template.xlsx` is the workbook to fill in before the switch-over:
+**Artists** (with billing details), **Products** (one row per variant, with today's stock) and
+**Past sales** (one row per item of each receipt, with totals before and after VAT). Instructions are
+on its first tab. It's built by `tool/migration/make_import_template.py`.
+
 ## Code layout
 
 The code is split in three layers. Each layer only uses the ones above it in this list:
