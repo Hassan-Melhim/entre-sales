@@ -84,6 +84,17 @@ Now only the accounts you create in the next step can sign in.
 
 All three have exactly the same rights.
 
+### 3d. Load the demo data (to try things out)
+
+So there's something realistic to sell, invoice and report on before the store goes live:
+**SQL Editor → New query**, paste the whole of `supabase/scripts/load_demo_data.sql` → **Run**
+(about a minute; it's a long file).
+
+It adds the September 2026 inventory (40 artists, 266 products, 514 variants) and a mock sales
+history from 1 June to 18 October 2026: about 1,550 sales, refunds, restocks and 12 workshop
+sessions. The sales go through the same calculations as real ones and are recorded as made by
+the first owner login. It only runs on an empty store, and it's all removed in Part 7.
+
 ### Never share
 
 The **secret key** (`sb_secret_…`) and the **database password**. The app only uses the
@@ -130,15 +141,18 @@ It's only used in emails Supabase sends.
 - **iPad**: open the address in **Safari** → **Share** → **Add to Home Screen**. It opens full
   screen like an app. Sign in once.
 - **Macs**: open it in any browser and bookmark it.
-- Each device remembers its sign-in until **Sign out** (bottom of the menu), or until it's left
-  unused for the time set in **Settings → This device** (30 minutes by default).
-- **Settings → This device** also has light / dark mode. Both settings are per device.
+- Each device stays signed in for one **shift: 5 hours** from signing in. If it's being used when the
+  time is up, it waits until it's been left alone for 5 minutes, so it never signs out mid-sale.
+  **Sign out** (bottom of the menu) ends the shift early.
+- **Settings → This device** changes the shift length (2–12 hours, or no limit) and light / dark
+  mode. Both are per device, so the iPad and each laptop can differ.
 - The site needs internet. If the store's wifi is down, use a phone hotspot.
 
 ## Part 7 — Going live (once)
 
-Until then, use the site freely to try things out. Sales can't be deleted from the app (on purpose),
-so on the first real day clear everything you entered while testing:
+Until then, use the site freely to try things out (with the demo data from Part 3d). Sales can't be
+deleted from the app (on purpose), so on the first real day clear the demo data and everything you
+entered while testing:
 
 1. If anything should be kept, **Settings → Backup → Download backup** first.
 2. In Supabase: **SQL Editor → New query**, paste `supabase/scripts/clear_test_data.sql` → **Run**.

@@ -82,22 +82,22 @@ final currentUserProvider = StreamProvider<AppUser?>((ref) async* {
   yield* auth.userChanges;
 });
 
-/// Minutes without use before this device signs out (0 = never).
-final idleSignOutMinutesProvider = StateNotifierProvider<IdleSignOutController, int>(
-    (ref) => IdleSignOutController(ref.watch(deviceSettingsProvider)));
+/// How many hours a sign-in lasts on this device (a shift); 0 = no limit.
+final shiftHoursProvider =
+    StateNotifierProvider<ShiftHoursController, int>((ref) => ShiftHoursController(ref.watch(deviceSettingsProvider)));
 
-class IdleSignOutController extends StateNotifier<int> {
+class ShiftHoursController extends StateNotifier<int> {
   /// Used until the owners choose otherwise on a device.
-  static const defaultMinutes = 30;
-  static const choices = [0, 5, 15, 30, 60, 120];
+  static const defaultHours = 5;
+  static const choices = [2, 4, 5, 8, 12, 0];
 
   final DeviceSettingsRepository _settings;
-  IdleSignOutController(this._settings)
-      : super(int.tryParse(_settings.get(DeviceSettingKeys.idleSignOutMinutes) ?? '') ?? defaultMinutes);
+  ShiftHoursController(this._settings)
+      : super(int.tryParse(_settings.get(DeviceSettingKeys.shiftHours) ?? '') ?? defaultHours);
 
-  Future<void> set(int minutes) async {
-    state = minutes;
-    await _settings.set(DeviceSettingKeys.idleSignOutMinutes, '$minutes');
+  Future<void> set(int hours) async {
+    state = hours;
+    await _settings.set(DeviceSettingKeys.shiftHours, '$hours');
   }
 }
 

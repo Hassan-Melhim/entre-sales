@@ -103,17 +103,12 @@ class _Section extends StatelessWidget {
 class _AppearanceSection extends ConsumerWidget {
   const _AppearanceSection();
 
-  static String _idleLabel(int minutes) => switch (minutes) {
-        0 => 'Never',
-        < 60 => '$minutes minutes',
-        60 => '1 hour',
-        _ => '${minutes ~/ 60} hours',
-      };
+  static String _shiftLabel(int hours) => hours == 0 ? 'No limit' : '$hours hours';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
-    final idle = ref.watch(idleSignOutMinutesProvider);
+    final shift = ref.watch(shiftHoursProvider);
     return _Section(
       title: 'This device',
       subtitle: 'Saved in this browser only, so the iPad and each laptop can differ',
@@ -133,21 +128,24 @@ class _AppearanceSection extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.l),
-        Text('Sign out automatically after', style: Theme.of(context).textTheme.labelLarge),
+        Text('Stay signed in for', style: Theme.of(context).textTheme.labelLarge),
         const SizedBox(height: AppSpacing.s),
         Wrap(
           spacing: AppSpacing.s,
           runSpacing: AppSpacing.s,
           children: [
-            for (final m in {...IdleSignOutController.choices, idle})
+            for (final h in {...ShiftHoursController.choices, shift})
               ChoiceChip(
-                label: Text(_idleLabel(m)),
-                selected: m == idle,
-                onSelected: (_) => ref.read(idleSignOutMinutesProvider.notifier).set(m),
+                label: Text(_shiftLabel(h)),
+                selected: h == shift,
+                onSelected: (_) => ref.read(shiftHoursProvider.notifier).set(h),
               ),
           ],
         ),
-        Text('without use (no tap, click or key press).', style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: AppSpacing.xs),
+        Text('Counted from signing in on this device (one shift). If it is being used when the time is up, '
+            'it waits until it has been left alone for 5 minutes.',
+            style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }

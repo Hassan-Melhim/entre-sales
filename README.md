@@ -70,7 +70,8 @@ VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, ca
   a timeline (by hour, day, week or month depending on the length), sales by category / artist / gender,
   best hours and weekdays, best sellers, turnover, days-to-sell and items longest on display.
   Export as PDF or CSV.
-- **Settings** – this device (light / dark mode, automatic sign-out), store details for PDFs,
+- **Settings** – this device (light / dark mode, shift length: signed out 5 hours after signing in,
+  but never mid-use), store details for PDFs,
   categories and their fields, discounts, backup download.
 
 Every date filter accepts the same day as start and end (that whole day).
@@ -109,13 +110,30 @@ All of this is in `supabase/migrations/` and tested by `supabase/tests/test_migr
 
 ## Demo data
 
-The September 2026 inventory and a mock sales history (`tool/demo_data/`) were used while the app
-stored its data on each device. They aren't loaded into Supabase, which holds the store's real data.
-The generator is kept in case test data is wanted in a separate project later:
+To try the site before going live, `supabase/scripts/load_demo_data.sql` (run in the Supabase SQL
+Editor, see SETUP.md Part 3d) adds:
+
+- the **September 2026 inventory** (`ES_Inventory_12Sept2026.xlsx`): 40 artists, 266 products, 514 variants.
+  Rows that are versions of one item are grouped as variants (e.g. silver/gold jewellery, bedrunner
+  pattern × size, café drinks). Prices in the sheet include VAT; base prices are calculated from them.
+  Items marked "?" belong to the store (artist **Entre Salas**, 100% commission, so no payout).
+  Café and bar items have a large stock and 0% VAT. Workshop and participation fees are left out.
+- a **mock sales history, 1 June – 18 October 2026**, following the opening hours
+  (Mon & Wed–Sat 11–21, Sun 14–19, closed Tuesdays): ~1,550 sales, Friends & Family discounts,
+  refunds, restocks and 12 workshop sessions (a few sales tagged by hand).
+- placeholder artist details (obviously fake billing: `ES00 0000…`, "Demo Bank"), and examples of
+  the overrides: 10% tax on Matilde Cunha's *Photo Strip*, product commissions of 30% on Cora's
+  *Ceramic Butter Dish* and 40% on Ana Drucker's *Bookend*.
+
+Every event goes through the database's own sale / refund / restock functions, and each variant ends
+at exactly the stock in the sheet. `supabase/scripts/clear_test_data.sql` removes it all before go-live.
+
+To rebuild it from a newer inventory export:
 
 ```powershell
 pip install openpyxl
-python tool/demo_data/generate_demo_data.py path\to\ES_Inventory.xlsx
+python tool/demo_data/generate_demo_data.py path\to\ES_Inventory.xlsx   # → demo_data.json
+python tool/demo_data/make_demo_sql.py                                   # → load_demo_data.sql
 ```
 
 ## Code layout
@@ -138,13 +156,13 @@ lib/
   presentation/    what the user sees
     providers.dart           the only place that picks the implementations (Riverpod)
     theme/                   colours (light / dark), spacing and size tokens, breakpoints
-    widgets/                 shared widgets (incl. automatic sign-out)
+    widgets/                 shared widgets (incl. end-of-shift sign-out)
     screens/                 login + one folder per tab
 supabase/
   migrations/      the database: tables, security, sale / refund / report functions (run in order)
-  scripts/         clear_test_data.sql, for the first real day
-  tests/           checks the migrations on a local PostgreSQL
-tool/              Vercel build script, demo data generator
+  scripts/         load_demo_data.sql (try it out), clear_test_data.sql (first real day)
+  tests/           checks the migrations on a local PostgreSQL; dumps rows for the Dart tests
+tool/              Vercel build script, demo data generator (→ JSON → SQL)
 web/               the website's page, icons and manifest
 vercel.json        how Vercel builds and serves the site
 test/

@@ -13,6 +13,9 @@ class DeviceSettingKeys {
   /// 'system', 'light' or 'dark'.
   static const themeMode = 'theme_mode';
 
-  /// Minutes without use before signing out; '0' = never.
-  static const idleSignOutMinutes = 'idle_sign_out_minutes';
+  /// How long a sign-in lasts on this device, in hours ('0' = no limit).
+  static const shiftHours = 'shift_hours';
+
+  /// When this device signed in (ISO 8601), to know when the shift ends.
+  static const signedInAt = 'signed_in_at';
 }

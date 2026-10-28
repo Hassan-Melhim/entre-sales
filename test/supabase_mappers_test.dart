@@ -65,8 +65,8 @@ void main() {
 
   test('product with its variants, field order and commission', () {
     final p = rows('product_rows').map(SupabaseMappers.product).firstWhere((p) => p.name == 'Sunset print');
-    expect(p.variants.first.attributes.keys, ['Size', 'Design']);
-    expect(p.variants.first.label, 'A3 · Sun');
+    expect(p.variants.first.attributes.keys, ['Design', 'Size']); // order as typed
+    expect(p.variants.first.label, 'Sun · A3');
     expect(p.commissionPercent, 20); // product's own rate wins over the artist's 40%
     expect(p.artistCommissionPercent, 40);
     expect(p.taxPercent, 21);
@@ -77,7 +77,7 @@ void main() {
     expect(o.totalCents, 11495);
     expect(o.discountName, 'Friends & Family');
     expect(o.status, OrderStatus.completed);
-    expect(o.items.single.variantLabel, 'A3 · Sun');
+    expect(o.items.single.variantLabel, 'Sun · A3');
     expect(o.items.single.artistPayoutCents, 6500);
   });
 

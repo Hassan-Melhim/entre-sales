@@ -317,7 +317,8 @@ $$;
 -- Stock of existing variants changes by (quantity − quantity_before), so a
 -- sale made on another device while the form was open isn't undone.
 -- Variants left out are deleted, or set to 0 if they were ever sold.
-create function public.save_product(p jsonb)
+-- "json" (not jsonb) so each variant's fields keep the order they were typed in.
+create function public.save_product(p json)
 returns bigint
 language plpgsql
 security definer
@@ -327,7 +328,7 @@ declare
   v_id   bigint := (p ->> 'id')::bigint;
   v_per  boolean := coalesce((p ->> 'per_variant_pricing')::boolean, false);
   v_keep bigint[];
-  v      jsonb;
+  v      json;
 begin
   perform public.require_owner();
 
@@ -354,7 +355,7 @@ begin
   end if;
 
   select coalesce(array_agg((e ->> 'id')::bigint), '{}') into v_keep
-  from jsonb_array_elements(coalesce(p -> 'variants', '[]')) e
+  from json_array_elements(coalesce(p -> 'variants', '[]'::json)) e
   where e ->> 'id' is not null;
 
   -- Variants removed from the form.
@@ -365,16 +366,16 @@ begin
   where product_id = v_id and id <> all (v_keep)
     and not exists (select 1 from public.order_items oi where oi.variant_id = variants.id);
 
-  for v in select * from jsonb_array_elements(coalesce(p -> 'variants', '[]'))
+  for v in select * from json_array_elements(coalesce(p -> 'variants', '[]'::json))
   loop
     if v ->> 'id' is null then
       insert into public.variants (product_id, attributes, quantity, price_override_cents, date_of_arrival)
-      values (v_id, coalesce(v -> 'attributes', '{}')::json, greatest((v ->> 'quantity')::int, 0),
+      values (v_id, coalesce(v -> 'attributes', '{}'::json), greatest((v ->> 'quantity')::int, 0),
               case when v_per then (v ->> 'price_override_cents')::bigint end,
               (v ->> 'date_of_arrival')::date);
     else
       update public.variants
-      set attributes = coalesce(v -> 'attributes', '{}')::json,
+      set attributes = coalesce(v -> 'attributes', '{}'::json),
           quantity = greatest(quantity + (v ->> 'quantity')::int
                               - coalesce((v ->> 'quantity_before')::int, quantity), 0),
           price_override_cents = case when v_per then (v ->> 'price_override_cents')::bigint end,
@@ -557,7 +558,7 @@ grant execute on function
   public.set_order_session(bigint, bigint),
   public.auto_tag_sales(),
   public.restock(bigint, integer, date),
-  public.save_product(jsonb),
+  public.save_product(json),
   public.save_category(jsonb),
   public.search_products(text, bigint, bigint),
   public.search_orders(timestamptz, timestamptz, bigint, text),

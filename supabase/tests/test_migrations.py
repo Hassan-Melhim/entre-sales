@@ -33,7 +33,7 @@ def setup():
         stub = open(os.path.join(HERE, 'supabase_stub.sql')).read()
         stub = re.sub(r'create role [^;]+;\n', '', stub)
         c.execute(stub)
-        c.execute('insert into auth.users values (%s, %s)', (OWNER, 'owner@example.com'))
+        c.execute('insert into auth.users (id, email) values (%s, %s)', (OWNER, 'owner@example.com'))
         for f in sorted(glob.glob(os.path.join(ROOT, 'supabase/migrations/*.sql'))):
             c.execute(open(f).read())
             print('applied', os.path.basename(f))
@@ -73,13 +73,13 @@ def main():
     pid = one(c, 'select save_product(%s)', (json.dumps({
         'name': 'Sunset print', 'artist_id': artist, 'category_id': posters, 'base_price_cents': 10000,
         'per_variant_pricing': False, 'variants': [
-            {'attributes': {'Size': 'A3', 'Design': 'Sun'}, 'quantity': 1, 'date_of_arrival': '2026-10-01'},
+            {'attributes': {'Design': 'Sun', 'Size': 'A3'}, 'quantity': 1, 'date_of_arrival': '2026-10-01'},
             {'attributes': {'Size': 'A2'}, 'quantity': 2, 'date_of_arrival': '2026-10-01'}]}),))[0]
     prod = one(c, 'select row_to_json(r) from search_products(%s) r', ('sunset',))[0]
     check(prod['name'] == 'Sunset print' and len(prod['variants']) == 2, 'product saved with 2 variants')
-    check(list(prod['variants'][0]['attributes'].keys()) == ['Size', 'Design'], 'field order kept')
+    check(list(prod['variants'][0]['attributes'].keys()) == ['Design', 'Size'], 'field order kept as typed')
     a3, a2 = [v['id'] for v in prod['variants']]
-    check(one(c, 'select variant_label(attributes) from variants where id=%s', (a3,))[0] == 'A3 · Sun', 'variant label')
+    check(one(c, 'select variant_label(attributes) from variants where id=%s', (a3,))[0] == 'Sun · A3', 'variant label')
     check(len(c.execute('select * from search_products(%s)', ('ana',)).fetchall()) == 1, 'search by artist name')
 
     print('checkout')
@@ -90,7 +90,7 @@ def main():
     check(o[3] == OWNER, 'sale records who made it')
     it = one(c, 'select artist_payout_cents, commission_percent, variant_label, arrival_date::text from order_items where order_id=%s', (oid,))
     check(it[0] == 6500 and float(it[1]) == 35, 'artist paid 65 € on full price, 35%')
-    check(it[2] == 'A3 · Sun' and it[3] == '2026-10-01', 'line snapshot')
+    check(it[2] == 'Sun · A3' and it[3] == '2026-10-01', 'line snapshot')
     check(one(c, 'select quantity from variants where id=%s', (a3,))[0] == 0, 'stock lowered')
 
     try:
@@ -130,7 +130,7 @@ def main():
     c.execute('select save_product(%s)', (json.dumps({
         'id': pid, 'name': 'Sunset print', 'artist_id': artist, 'category_id': posters, 'base_price_cents': 10000,
         'per_variant_pricing': False, 'commission_percent_override': 20, 'variants': [
-            {'id': a3, 'attributes': {'Size': 'A3', 'Design': 'Sun'}, 'quantity': 1, 'quantity_before': 1, 'date_of_arrival': '2026-10-20'},
+            {'id': a3, 'attributes': {'Design': 'Sun', 'Size': 'A3'}, 'quantity': 1, 'quantity_before': 1, 'date_of_arrival': '2026-10-20'},
             {'id': a2, 'attributes': {'Size': 'A2'}, 'quantity': before + 4, 'quantity_before': before, 'date_of_arrival': '2026-10-22'}]}),))
     check(one(c, 'select quantity from variants where id=%s', (a2,))[0] == 5 + 4, 'form adds 4 without undoing the other sale')
 

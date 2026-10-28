@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/repositories/device_settings_repository.dart';
 import '../providers.dart';
 
 import '../theme/app_tokens.dart';
@@ -52,7 +53,10 @@ class _AppShellState extends ConsumerState<AppShell> {
         style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
       );
 
-  Future<void> _signOut() => ref.read(authRepositoryProvider).signOut();
+  Future<void> _signOut() async {
+    await ref.read(deviceSettingsProvider).set(DeviceSettingKeys.signedInAt, null);
+    await ref.read(authRepositoryProvider).signOut();
+  }
 
   /// Who is signed in, with a sign-out button.
   Widget _account(BuildContext context, {required bool compact}) {

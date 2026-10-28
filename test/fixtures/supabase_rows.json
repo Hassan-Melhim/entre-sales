@@ -11,7 +11,7 @@
    "bank_name": null,
    "is_spain_resident": true,
    "commission_percent": 40.0,
-   "created_at": "2026-10-28T13:15:02.839116+00:00"
+   "created_at": "2026-10-28T13:28:15.677339+00:00"
   }
  ],
  "categories": [
@@ -300,7 +300,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": 20.0,
-   "created_at": "2026-10-28T13:15:02.842702+00:00",
+   "created_at": "2026-10-28T13:28:15.680031+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -310,8 +310,8 @@
      "id": 1,
      "product_id": 1,
      "attributes": {
-      "Size": "A3",
-      "Design": "Sun"
+      "Design": "Sun",
+      "Size": "A3"
      },
      "quantity": 1,
      "price_override_cents": null,
@@ -338,7 +338,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": null,
-   "created_at": "2026-10-28T13:15:02.940373+00:00",
+   "created_at": "2026-10-28T13:28:15.785381+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -363,7 +363,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": null,
-   "created_at": "2026-10-28T13:15:03.010325+00:00",
+   "created_at": "2026-10-28T13:28:15.850553+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -393,16 +393,16 @@
    "id": 1,
    "google_id": null,
    "title": "Ceramics workshop",
-   "start_at": "2026-10-28T12:15:02.897712+00:00",
-   "end_at": "2026-10-28T14:15:02.897712+00:00",
+   "start_at": "2026-10-28T12:28:15.751532+00:00",
+   "end_at": "2026-10-28T14:28:15.751532+00:00",
    "synced_at": null
   }
  ],
  "order_rows": [
   {
    "id": 1,
-   "created_at": "2026-10-28T13:15:02.851638+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.687977+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Card",
    "status": "completed",
@@ -424,7 +424,7 @@
      "product_id": 1,
      "artist_id": 1,
      "product_name": "Sunset print",
-     "variant_label": "A3 · Sun",
+     "variant_label": "Sun · A3",
      "category_name": "Prints & Posters",
      "quantity": 1,
      "unit_base_cents": 10000,
@@ -443,8 +443,8 @@
   },
   {
    "id": 2,
-   "created_at": "2026-10-28T13:15:02.866159+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.6991+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -485,8 +485,8 @@
   },
   {
    "id": 3,
-   "created_at": "2026-10-28T13:15:02.874256+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.704512+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -508,7 +508,7 @@
      "product_id": 1,
      "artist_id": 1,
      "product_name": "Sunset print",
-     "variant_label": "A3 · Sun",
+     "variant_label": "Sun · A3",
      "category_name": "Prints & Posters",
      "quantity": 1,
      "unit_base_cents": 10000,
@@ -527,8 +527,8 @@
   },
   {
    "id": 4,
-   "created_at": "2026-10-28T13:15:02.880747+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.709089+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Card",
    "status": "refunded",
@@ -569,8 +569,8 @@
   },
   {
    "id": 5,
-   "created_at": "2026-10-28T13:15:02.892603+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.738426+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -611,8 +611,8 @@
   },
   {
    "id": 6,
-   "created_at": "2026-10-28T13:15:02.898838+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.753416+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -653,8 +653,8 @@
   },
   {
    "id": 7,
-   "created_at": "2026-10-28T13:15:02.973947+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "created_at": "2026-10-28T13:28:15.817276+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -695,9 +695,9 @@
   },
   {
    "id": 8,
-   "created_at": "2026-10-28T13:15:03.012724+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
-   "sale_ref": "0477a7fe-2224-46fc-8bdf-b76c4e4f1657",
+   "created_at": "2026-10-28T13:28:15.853678+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "sale_ref": "41ef78b9-274f-4756-99a1-b7974920bb45",
    "payment_method": "Cash",
    "status": "completed",
    "calendar_event_id": 1,
@@ -737,9 +737,9 @@
   },
   {
    "id": 9,
-   "created_at": "2026-10-28T13:15:03.015271+00:00",
-   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
-   "sale_ref": "9626bdca-ac38-43fd-9199-73396c0a22e7",
+   "created_at": "2026-10-28T13:28:15.856619+00:00",
+   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "sale_ref": "7979453e-2b67-43df-9fdd-3228db6b51ad",
    "payment_method": "Cash",
    "status": "completed",
    "calendar_event_id": 1,
@@ -781,7 +781,7 @@
  "report_order_summaries": [
   {
    "id": 1,
-   "created_at": "2026-10-28T13:15:02.851638+00:00",
+   "created_at": "2026-10-28T13:28:15.687977+00:00",
    "payment_method": "Card",
    "discount_cents": 500,
    "tax_cents": 1995,
@@ -789,7 +789,7 @@
   },
   {
    "id": 2,
-   "created_at": "2026-10-28T13:15:02.866159+00:00",
+   "created_at": "2026-10-28T13:28:15.6991+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -797,7 +797,7 @@
   },
   {
    "id": 3,
-   "created_at": "2026-10-28T13:15:02.874256+00:00",
+   "created_at": "2026-10-28T13:28:15.704512+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -805,7 +805,7 @@
   },
   {
    "id": 4,
-   "created_at": "2026-10-28T13:15:02.880747+00:00",
+   "created_at": "2026-10-28T13:28:15.709089+00:00",
    "payment_method": "Card",
    "discount_cents": 0,
    "tax_cents": 6300,
@@ -813,7 +813,7 @@
   },
   {
    "id": 5,
-   "created_at": "2026-10-28T13:15:02.892603+00:00",
+   "created_at": "2026-10-28T13:28:15.738426+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -821,7 +821,7 @@
   },
   {
    "id": 6,
-   "created_at": "2026-10-28T13:15:02.898838+00:00",
+   "created_at": "2026-10-28T13:28:15.753416+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -829,7 +829,7 @@
   },
   {
    "id": 7,
-   "created_at": "2026-10-28T13:15:02.973947+00:00",
+   "created_at": "2026-10-28T13:28:15.817276+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 1050,
@@ -837,7 +837,7 @@
   },
   {
    "id": 8,
-   "created_at": "2026-10-28T13:15:03.012724+00:00",
+   "created_at": "2026-10-28T13:28:15.853678+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 420,
@@ -845,7 +845,7 @@
   },
   {
    "id": 9,
-   "created_at": "2026-10-28T13:15:03.015271+00:00",
+   "created_at": "2026-10-28T13:28:15.856619+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 420,
@@ -856,14 +856,14 @@
   {
    "id": 1,
    "order_id": 1,
-   "sold_at": "2026-10-28T13:15:02.851638+00:00",
+   "sold_at": "2026-10-28T13:28:15.687977+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
    "artist_resident": true,
    "product_id": 1,
    "product_name": "Sunset print",
-   "variant_label": "A3 · Sun",
+   "variant_label": "Sun · A3",
    "category_name": "Prints & Posters",
    "quantity": 1,
    "unit_base_cents": 10000,
@@ -878,7 +878,7 @@
   {
    "id": 2,
    "order_id": 2,
-   "sold_at": "2026-10-28T13:15:02.866159+00:00",
+   "sold_at": "2026-10-28T13:28:15.6991+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -900,14 +900,14 @@
   {
    "id": 3,
    "order_id": 3,
-   "sold_at": "2026-10-28T13:15:02.874256+00:00",
+   "sold_at": "2026-10-28T13:28:15.704512+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
    "artist_resident": true,
    "product_id": 1,
    "product_name": "Sunset print",
-   "variant_label": "A3 · Sun",
+   "variant_label": "Sun · A3",
    "category_name": "Prints & Posters",
    "quantity": 1,
    "unit_base_cents": 10000,
@@ -922,7 +922,7 @@
   {
    "id": 4,
    "order_id": 4,
-   "sold_at": "2026-10-28T13:15:02.880747+00:00",
+   "sold_at": "2026-10-28T13:28:15.709089+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -944,7 +944,7 @@
   {
    "id": 5,
    "order_id": 5,
-   "sold_at": "2026-10-28T13:15:02.892603+00:00",
+   "sold_at": "2026-10-28T13:28:15.738426+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -966,7 +966,7 @@
   {
    "id": 6,
    "order_id": 6,
-   "sold_at": "2026-10-28T13:15:02.898838+00:00",
+   "sold_at": "2026-10-28T13:28:15.753416+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -988,7 +988,7 @@
   {
    "id": 7,
    "order_id": 7,
-   "sold_at": "2026-10-28T13:15:02.973947+00:00",
+   "sold_at": "2026-10-28T13:28:15.817276+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1010,7 +1010,7 @@
   {
    "id": 8,
    "order_id": 8,
-   "sold_at": "2026-10-28T13:15:03.012724+00:00",
+   "sold_at": "2026-10-28T13:28:15.853678+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1032,7 +1032,7 @@
   {
    "id": 9,
    "order_id": 9,
-   "sold_at": "2026-10-28T13:15:03.015271+00:00",
+   "sold_at": "2026-10-28T13:28:15.856619+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1056,7 +1056,7 @@
   {
    "id": 1,
    "order_id": 4,
-   "refunded_at": "2026-10-28T13:15:02.885384+00:00",
+   "refunded_at": "2026-10-28T13:28:15.721044+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1076,7 +1076,7 @@
   {
    "id": 2,
    "order_id": 4,
-   "refunded_at": "2026-10-28T13:15:02.88972+00:00",
+   "refunded_at": "2026-10-28T13:28:15.729903+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
