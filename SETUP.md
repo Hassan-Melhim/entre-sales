@@ -62,8 +62,11 @@ For each one:
 1. In Supabase, open **SQL Editor** (left menu) → **New query**.
 2. Open the file in VS Code, select everything (`Ctrl+A`), copy, and paste it into the editor.
 3. Press **Run**. It should say **Success. No rows returned**.
-   If Supabase asks to confirm a *destructive operation*, that's the `revoke` lines removing
-   default access: confirm.
+   - File 1 shows *Potential issue detected … without enabling Row Level Security*: choose
+     **Run and enable RLS**. (Row Level Security is the lock that keeps everyone except the signed-in
+     owners out; file 2 sets its rules.)
+   - If Supabase asks to confirm a *destructive operation*, that's the `revoke` lines removing
+     default access: confirm.
 
 If a file shows an error, stop there and send a screenshot. Don't run the next one.
 
