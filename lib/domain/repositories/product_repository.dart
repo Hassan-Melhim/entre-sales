@@ -1,6 +1,6 @@
 import '../models/product.dart';
 import '../models/product_filter.dart';
-import '../models/variant.dart';
+import '../models/variant_input.dart';
 
 /// Products and their variants (the inventory).
 abstract interface class ProductRepository {
@@ -10,7 +10,9 @@ abstract interface class ProductRepository {
 
   /// Creates or updates a product. [variants] is the full list: variants
   /// with an id are updated, new ones added, and missing ones removed
-  /// (or set to 0 if they were ever sold). Returns the product id.
+  /// (or set to 0 if they were ever sold). Stock of an existing variant
+  /// changes by the difference the user typed, so sales made on another
+  /// device meanwhile are kept. Returns the product id.
   Future<int> save({
     int? id,
     required String name,
@@ -20,7 +22,7 @@ abstract interface class ProductRepository {
     required bool perVariantPricing,
     required double? taxPercentOverride,
     required double? commissionPercentOverride,
-    required List<Variant> variants,
+    required List<VariantInput> variants,
   });
 
   /// Sets this product's own commission; null = use the artist's.

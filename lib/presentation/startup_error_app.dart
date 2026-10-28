@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'theme/app_theme.dart';
@@ -12,11 +11,8 @@ class StartupErrorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hint = kIsWeb && '$error'.contains('SqfliteFfiWeb')
-        ? 'The browser database files are missing. In the project folder run:\n\n'
-            'dart run sqflite_common_ffi_web:setup\n\n'
-            'then start the app again.'
-        : 'Restart the app. If it keeps happening, send this message to whoever maintains the app.';
+    const hint = 'Check the internet connection and reload the page. '
+        'If it keeps happening, send this message to whoever maintains the app.';
     return MaterialApp(
       title: 'Entre Sales',
       debugShowCheckedModeBanner: false,
@@ -37,7 +33,7 @@ class StartupErrorApp extends StatelessWidget {
                     const SizedBox(height: AppSpacing.m),
                     Text('Entre Sales could not start', style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: AppSpacing.m),
-                    SelectableText(hint),
+                    const SelectableText(hint),
                     const SizedBox(height: AppSpacing.l),
                     SelectableText('$error', style: Theme.of(context).textTheme.bodySmall),
                   ],

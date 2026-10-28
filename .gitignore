@@ -12,12 +12,16 @@ build/
 !.vscode/launch.json
 *.log
 
-# Android
-android/.gradle/
-android/local.properties
-android/key.properties
-*.jks
-*.keystore
+# Website only: app platform folders made by older `flutter create` runs
+android/
+ios/
+windows/
+macos/
+linux/
+
+# Flutter downloaded by the Vercel build, and Vercel's local settings
+/flutter/
+.vercel/
 
 # OS
 .DS_Store

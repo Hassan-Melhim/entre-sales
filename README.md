@@ -2,27 +2,23 @@
 
 Inventory, point of sale, artist payouts and sales reports for the Entre Salas concept store.
 
-The app is moving to a **website** (planned at entresalas.shop) used from the store's iPad and the owners'
-MacBooks, with no app-store fees. For now the website keeps its data **in the browser of each device**
-(mock/demo data). A shared online database (Supabase) comes next, so every device will see the same data.
-The same code still runs as a Windows or Android app for testing.
+A **website** used from the store's iPad and the owners' MacBooks. The data lives in **Supabase**
+(one shared database, so every device sees the same stock and sales) and the site is hosted on **Vercel**.
+Each owner signs in with their own email and password; all three have the same rights.
 
 The layout adapts to phones, tablets (portrait or landscape) and computer windows, in light or dark mode.
 
 ## First-time setup
 
-**Full step-by-step guide: [SETUP.md](SETUP.md).**
+**Full step-by-step guide (database, logins, Vercel, iPad): [SETUP.md](SETUP.md).**
 
-Short version: platform folders are not committed. Generate them once, then run:
+Short version, once the database is set up:
 
 ```powershell
-flutter create --platforms=web,windows,android --org com.entre .   # keeps existing files
 flutter pub get
-dart run sqflite_common_ffi_web:setup   # once: puts the browser SQLite files in web/
-flutter test             # money formulas + the whole database layer
 flutter analyze
-flutter run -d chrome    # the website, on your computer
-flutter run -d windows   # the Windows app
+flutter test             # money formulas + reading Supabase rows
+flutter run -d chrome    # the website, on your computer (real database)
 ```
 
 Requires Flutter 3.35 or newer.
@@ -30,7 +26,9 @@ Requires Flutter 3.35 or newer.
 ## Where to change the money rules
 
 Everything that decides how money is split is in **`lib/domain/business_rules.dart`**,
-each rule marked with `►►►`:
+each rule marked with `►►►`. The two rules the database applies when recording a sale (default
+commission, whether discounts reduce the payout) are repeated at the top of
+`supabase/migrations/20261028120200_functions.sql`; a test checks they match.
 
 | Rule | Current value |
 |---|---|
@@ -38,7 +36,6 @@ each rule marked with `►►►`:
 | Tax for Spain-resident artists | 10%, **added on top** of the payout (placeholder: confirm with your accountant) |
 | Discounts | Absorbed by the store; artist is paid on the full price |
 | Store profit | Customer paid (VAT incl.) − artist payout − resident tax added |
-| Workshop keyword | Calendar events whose title contains "workshop" |
 | Gender options | Male, Female, Queer |
 
 ### Commission (changed often, so it is one tap away)
@@ -73,8 +70,8 @@ VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, ca
   a timeline (by hour, day, week or month depending on the length), sales by category / artist / gender,
   best hours and weekdays, best sellers, turnover, days-to-sell and items longest on display.
   Export as PDF or CSV.
-- **Settings** – appearance (system / light / dark), store details for PDFs, categories and their fields,
-  discounts, Google Calendar, backup, demo data.
+- **Settings** – this device (light / dark mode, automatic sign-out), store details for PDFs,
+  categories and their fields, discounts, backup download.
 
 Every date filter accepts the same day as start and end (that whole day).
 
@@ -93,58 +90,33 @@ With the Friends & Family discount the customer pays 95 + 21% = 114.95 €; the 
 
 Refunds are dated on the day of the refund and are deducted from the artist payout of that period.
 
-## The website (current state)
+## How the database keeps the money safe
 
-| | Now | With Supabase (next step) |
-|---|---|---|
-| Where data lives | In each browser, on each device separately | One shared database for all devices |
-| Demo data | **Settings → Demo data** on each device | Loaded once |
-| Backup | Not available (the browser keeps the data) | Automatic daily backups |
-| Google Calendar | Add workshop sessions by hand | Synced on the server |
-| Sign-in | None | Each owner has their own login (all with the same rights) |
+- **Signed-in owners only.** Without signing in, nothing can be read or changed. Sign-ups are closed;
+  the three logins are created in Supabase.
+- **Sales are calculated by the database**, from the catalog: prices, VAT, discount and commission
+  can't be altered by a device.
+- **Stock is checked and lowered in the same step as the sale**, so two devices can't sell the
+  same last item.
+- **A sale sent twice** (e.g. the connection dropped and the button was pressed again) is recorded once.
+- **Sales and refunds can't be edited or deleted**; mistakes are corrected with a refund.
+- **Every change is logged** (`audit_log`) with who made it and when.
+- Saving a product changes stock by the difference typed, so a sale made on another device while the
+  form was open isn't undone.
 
-Because of this, **do not use the website for real sales yet**: clearing the browser's data deletes it.
-
-On the iPad: open the site in Safari → Share → **Add to Home Screen**, and it opens full screen like an app.
-
-## Google Calendar (Android app only, for now)
-
-The Android app can read the store's calendar to know when workshops happen; see SETUP.md Part 10.
-On the website and on Windows, add workshops by hand in **Invoices → Workshop sessions**.
+All of this is in `supabase/migrations/` and tested by `supabase/tests/test_migrations.py`
+(runs on a local PostgreSQL).
 
 ## Demo data
 
-**Settings → Demo data → Load demo data** replaces everything on the device with:
-
-- the **September 2026 inventory** (`ES_Inventory_12Sept2026.xlsx`): 40 artists, 266 products, 514 variants.
-  Rows that are versions of one item are grouped as variants (e.g. silver/gold jewellery, bedrunner
-  pattern × size, café drinks). Prices in the sheet include VAT; base prices are calculated from them.
-  Items marked "?" belong to the store (artist **Entre Salas**, 100% commission, so no payout).
-  Café and bar items have a large stock and 0% VAT. Workshop and participation fees are left out.
-- a **mock sales history, 1 June – 18 October 2026**, following the opening hours
-  (Mon & Wed–Sat 11–21, Sun 14–19, closed Tuesdays): ~1,550 sales, Friends & Family discounts,
-  refunds, restocks, and 2–3 workshop sessions a month (some from "Google Calendar", some added by hand,
-  a few sales tagged by hand). Stock at the end matches the sheet; negative quantities became 0.
-- placeholder artist details: mixed genders, residency and commissions; billing details are obviously
-  fake (`ES00 0000…`, "Demo Bank").
-- demo-only examples of the overrides: a 10% tax rate on Matilde Cunha's *Photo Strip*, and a product
-  commission of 30% on Cora's *Ceramic Butter Dish* and 40% on Ana Drucker's *Bookend*.
-
-The button is shown on the website, on computers and in debug builds, and hidden in a release app on a
-phone or tablet so real data can't be wiped by accident.
-
-The history is replayed through the app's own sale and refund code, so all amounts are calculated exactly
-like real sales. `test/demo_data_test.dart` loads the file and checks every final stock level against the
-sheet.
-
-To rebuild the demo file (e.g. from a newer inventory export):
+The September 2026 inventory and a mock sales history (`tool/demo_data/`) were used while the app
+stored its data on each device. They aren't loaded into Supabase, which holds the store's real data.
+The generator is kept in case test data is wanted in a separate project later:
 
 ```powershell
 pip install openpyxl
 python tool/demo_data/generate_demo_data.py path\to\ES_Inventory.xlsx
 ```
-
-How each row is grouped and categorised is listed in `tool/demo_data/catalog_mapping.py`.
 
 ## Code layout
 
@@ -152,35 +124,34 @@ The code is split in three layers. Each layer only uses the ones above it in thi
 
 ```
 lib/
-  core/            formatting of money and dates, asset paths (no Flutter widgets, no database)
+  core/            money and date formatting, Supabase address, asset paths
   domain/          the business: what the store does, independent of any database or screen
     business_rules.dart      ← money rules
-    pricing.dart             VAT, commission, discount, refund formulas
+    pricing.dart             VAT, commission, discount, refund formulas (for the cart and previews)
     models/                  one plain data class per file (Artist, Product, SaleOrder, ReportPeriod, …)
-    repositories/            interfaces: what data the app needs (ProductRepository, SalesRepository, …)
+    repositories/            interfaces: what data the app needs (ProductRepository, AuthRepository, …)
     services/                report and artist-statement calculations
-  data/            how it is done today
-    sqlite/                  SQLite schema + one Sqlite…Repository per interface
-                             (browser, Windows, Android picked automatically)
-    export/                  PDF and CSV files; saving / downloading / sharing them
-    calendar/                Google Calendar sync
+  data/            how it is done
+    supabase/                one Supabase…Repository per interface, row ↔ model mapping, paging
+    local/                   per-device preferences (light / dark, auto sign-out)
+    export/                  PDF and CSV files, browser downloads
   presentation/    what the user sees
     providers.dart           the only place that picks the implementations (Riverpod)
     theme/                   colours (light / dark), spacing and size tokens, breakpoints
-    widgets/                 shared widgets
-    screens/                 one folder per tab
-tool/demo_data/    builds assets/demo/demo_data.json from the inventory sheet
+    widgets/                 shared widgets (incl. automatic sign-out)
+    screens/                 login + one folder per tab
+supabase/
+  migrations/      the database: tables, security, sale / refund / report functions (run in order)
+  scripts/         clear_test_data.sql, for the first real day
+  tests/           checks the migrations on a local PostgreSQL
+tool/              Vercel build script, demo data generator
 web/               the website's page, icons and manifest
+vercel.json        how Vercel builds and serves the site
 test/
-  pricing_test.dart          money formulas, date ranges, report periods
-  database_test.dart         sales, stock, commission priority, refunds, statements, reports, upgrades
-  demo_data_test.dart        loads the demo data and checks it against the sheet
-  widget_test.dart           widgets in light and dark mode
+  pricing_test.dart            money formulas, date ranges, report periods
+  supabase_mappers_test.dart   real Supabase rows → models, a report over them
+  widget_test.dart             widgets in light and dark mode
 ```
-
-**Switching to Supabase** means writing one `Supabase…Repository` per interface in
-`lib/domain/repositories/` and changing the providers in `lib/presentation/providers.dart`.
-The screens, formulas and reports do not change.
 
 Sizes, spacing and breakpoints come from `lib/presentation/theme/app_tokens.dart` and
 `breakpoints.dart`; colours come from the theme, so everything follows light and dark mode.
@@ -195,7 +166,5 @@ Sizes, spacing and breakpoints come from `lib/presentation/theme/app_tokens.dart
 
 ## Backup
 
-- **Website**: nothing to back up yet; it only holds test data (see above).
-- **Windows / Android app**: **Settings → Backup → Save database backup**. On Windows, PDFs, CSVs and
-  backups are saved to `Documents\Entre Sales`, and the database lives in
-  `%APPDATA%\com.entre\entre_sales`.
+The free Supabase plan makes no automatic backups: use **Settings → Backup → Download backup**
+regularly (e.g. weekly). The Pro plan adds daily backups.

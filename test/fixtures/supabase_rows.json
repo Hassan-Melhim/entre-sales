@@ -1,0 +1,1126 @@
+{
+ "artists": [
+  {
+   "id": 1,
+   "name": "Ana",
+   "gender": null,
+   "address": null,
+   "legal_name": null,
+   "tax_id": null,
+   "iban": null,
+   "bank_name": null,
+   "is_spain_resident": true,
+   "commission_percent": 40.0,
+   "created_at": "2026-10-28T13:15:02.839116+00:00"
+  }
+ ],
+ "categories": [
+  {
+   "id": 1,
+   "name": "Clothing",
+   "tax_percent": 21.0,
+   "sort_order": 0,
+   "category_attributes": [
+    {
+     "id": 1,
+     "category_id": 1,
+     "name": "Size",
+     "options": [
+      "XS",
+      "XS/S",
+      "S",
+      "M",
+      "L",
+      "XL"
+     ],
+     "sort_order": 0
+    },
+    {
+     "id": 2,
+     "category_id": 1,
+     "name": "Style",
+     "options": [],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "name": "Jewellery",
+   "tax_percent": 21.0,
+   "sort_order": 1,
+   "category_attributes": [
+    {
+     "id": 3,
+     "category_id": 2,
+     "name": "Finish",
+     "options": [],
+     "sort_order": 0
+    },
+    {
+     "id": 4,
+     "category_id": 2,
+     "name": "Style",
+     "options": [],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "name": "Accessories",
+   "tax_percent": 21.0,
+   "sort_order": 2,
+   "category_attributes": [
+    {
+     "id": 5,
+     "category_id": 3,
+     "name": "Style",
+     "options": [],
+     "sort_order": 0
+    },
+    {
+     "id": 6,
+     "category_id": 3,
+     "name": "Size",
+     "options": [],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "name": "Ceramics",
+   "tax_percent": 21.0,
+   "sort_order": 3,
+   "category_attributes": [
+    {
+     "id": 7,
+     "category_id": 4,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    },
+    {
+     "id": 8,
+     "category_id": 4,
+     "name": "Size",
+     "options": [],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "name": "Prints & Posters",
+   "tax_percent": 21.0,
+   "sort_order": 4,
+   "category_attributes": [
+    {
+     "id": 9,
+     "category_id": 5,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    },
+    {
+     "id": 10,
+     "category_id": 5,
+     "name": "Size",
+     "options": [
+      "A4",
+      "A3",
+      "Big"
+     ],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "name": "Postcards & Stickers",
+   "tax_percent": 21.0,
+   "sort_order": 5,
+   "category_attributes": [
+    {
+     "id": 11,
+     "category_id": 6,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "name": "Books & Zines",
+   "tax_percent": 4.0,
+   "sort_order": 6,
+   "category_attributes": [
+    {
+     "id": 12,
+     "category_id": 7,
+     "name": "Language",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "name": "Stationery",
+   "tax_percent": 21.0,
+   "sort_order": 7,
+   "category_attributes": [
+    {
+     "id": 13,
+     "category_id": 8,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "name": "Home & Textiles",
+   "tax_percent": 21.0,
+   "sort_order": 8,
+   "category_attributes": [
+    {
+     "id": 14,
+     "category_id": 9,
+     "name": "Pattern",
+     "options": [],
+     "sort_order": 0
+    },
+    {
+     "id": 15,
+     "category_id": 9,
+     "name": "Size",
+     "options": [
+      "Single",
+      "Double",
+      "King"
+     ],
+     "sort_order": 1
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "name": "Lamps",
+   "tax_percent": 21.0,
+   "sort_order": 9,
+   "category_attributes": [
+    {
+     "id": 16,
+     "category_id": 10,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "name": "Candles",
+   "tax_percent": 21.0,
+   "sort_order": 10,
+   "category_attributes": [
+    {
+     "id": 17,
+     "category_id": 11,
+     "name": "Scent",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 12,
+   "name": "Toys & Games",
+   "tax_percent": 21.0,
+   "sort_order": 11,
+   "category_attributes": [
+    {
+     "id": 18,
+     "category_id": 12,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 13,
+   "name": "Art & Objects",
+   "tax_percent": 21.0,
+   "sort_order": 12,
+   "category_attributes": [
+    {
+     "id": 19,
+     "category_id": 13,
+     "name": "Design",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 14,
+   "name": "Food & Drink",
+   "tax_percent": 0.0,
+   "sort_order": 13,
+   "category_attributes": [
+    {
+     "id": 20,
+     "category_id": 14,
+     "name": "Option",
+     "options": [],
+     "sort_order": 0
+    }
+   ]
+  },
+  {
+   "id": 15,
+   "name": "Miscellaneous",
+   "tax_percent": 21.0,
+   "sort_order": 14,
+   "category_attributes": []
+  }
+ ],
+ "product_rows": [
+  {
+   "id": 1,
+   "artist_id": 1,
+   "category_id": 5,
+   "name": "Sunset print",
+   "base_price_cents": 10000,
+   "per_variant_pricing": false,
+   "tax_percent_override": null,
+   "commission_percent_override": 20.0,
+   "created_at": "2026-10-28T13:15:02.842702+00:00",
+   "artist_name": "Ana",
+   "artist_commission": 40.0,
+   "category_name": "Prints & Posters",
+   "category_tax": 21.0,
+   "variants": [
+    {
+     "id": 1,
+     "product_id": 1,
+     "attributes": {
+      "Size": "A3",
+      "Design": "Sun"
+     },
+     "quantity": 1,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-10-20"
+    },
+    {
+     "id": 2,
+     "product_id": 1,
+     "attributes": {
+      "Size": "A2"
+     },
+     "quantity": 8,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-10-22"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "artist_id": 1,
+   "category_id": 5,
+   "name": "Unique vase",
+   "base_price_cents": 5000,
+   "per_variant_pricing": false,
+   "tax_percent_override": null,
+   "commission_percent_override": null,
+   "created_at": "2026-10-28T13:15:02.940373+00:00",
+   "artist_name": "Ana",
+   "artist_commission": 40.0,
+   "category_name": "Prints & Posters",
+   "category_tax": 21.0,
+   "variants": [
+    {
+     "id": 3,
+     "product_id": 2,
+     "attributes": {},
+     "quantity": 0,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-10-01"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "artist_id": 1,
+   "category_id": 5,
+   "name": "Tote bag",
+   "base_price_cents": 2000,
+   "per_variant_pricing": false,
+   "tax_percent_override": null,
+   "commission_percent_override": null,
+   "created_at": "2026-10-28T13:15:03.010325+00:00",
+   "artist_name": "Ana",
+   "artist_commission": 40.0,
+   "category_name": "Prints & Posters",
+   "category_tax": 21.0,
+   "variants": [
+    {
+     "id": 4,
+     "product_id": 3,
+     "attributes": {},
+     "quantity": 1,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-10-01"
+    }
+   ]
+  }
+ ],
+ "discounts": [
+  {
+   "id": 1,
+   "name": "Friends & Family",
+   "percent": 5.0,
+   "active": true
+  }
+ ],
+ "calendar_events": [
+  {
+   "id": 1,
+   "google_id": null,
+   "title": "Ceramics workshop",
+   "start_at": "2026-10-28T12:15:02.897712+00:00",
+   "end_at": "2026-10-28T14:15:02.897712+00:00",
+   "synced_at": null
+  }
+ ],
+ "order_rows": [
+  {
+   "id": 1,
+   "created_at": "2026-10-28T13:15:02.851638+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Card",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": 1,
+   "discount_name": "Friends & Family",
+   "discount_percent": 5.0,
+   "subtotal_cents": 9500,
+   "discount_cents": 500,
+   "tax_cents": 1995,
+   "total_cents": 11495,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 1,
+     "order_id": 1,
+     "variant_id": 1,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A3 · Sun",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 35.0,
+     "discount_percent": 5.0,
+     "base_cents": 9500,
+     "discount_cents": 500,
+     "tax_cents": 1995,
+     "total_cents": 11495,
+     "artist_payout_cents": 6500,
+     "arrival_date": "2026-10-01",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "created_at": "2026-10-28T13:15:02.866159+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 2,
+     "order_id": 2,
+     "variant_id": 2,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A2",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 40.0,
+     "discount_percent": 0.0,
+     "base_cents": 10000,
+     "discount_cents": 0,
+     "tax_cents": 2100,
+     "total_cents": 12100,
+     "artist_payout_cents": 6000,
+     "arrival_date": "2026-10-01",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "created_at": "2026-10-28T13:15:02.874256+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 3,
+     "order_id": 3,
+     "variant_id": 1,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A3 · Sun",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 20.0,
+     "discount_percent": 0.0,
+     "base_cents": 10000,
+     "discount_cents": 0,
+     "tax_cents": 2100,
+     "total_cents": 12100,
+     "artist_payout_cents": 8000,
+     "arrival_date": "2026-10-20",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "created_at": "2026-10-28T13:15:02.880747+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Card",
+   "status": "refunded",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 30000,
+   "discount_cents": 0,
+   "tax_cents": 6300,
+   "total_cents": 36300,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 4,
+     "order_id": 4,
+     "variant_id": 2,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A2",
+     "category_name": "Prints & Posters",
+     "quantity": 3,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 20.0,
+     "discount_percent": 0.0,
+     "base_cents": 30000,
+     "discount_cents": 0,
+     "tax_cents": 6300,
+     "total_cents": 36300,
+     "artist_payout_cents": 24000,
+     "arrival_date": "2026-10-21",
+     "refunded_quantity": 3
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "created_at": "2026-10-28T13:15:02.892603+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 5,
+     "order_id": 5,
+     "variant_id": 2,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A2",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 20.0,
+     "discount_percent": 0.0,
+     "base_cents": 10000,
+     "discount_cents": 0,
+     "tax_cents": 2100,
+     "total_cents": 12100,
+     "artist_payout_cents": 8000,
+     "arrival_date": "2026-10-21",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "created_at": "2026-10-28T13:15:02.898838+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": null,
+   "event_tag_source": "manual",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "event_title": null,
+   "items": [
+    {
+     "id": 6,
+     "order_id": 6,
+     "variant_id": 2,
+     "product_id": 1,
+     "artist_id": 1,
+     "product_name": "Sunset print",
+     "variant_label": "A2",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 10000,
+     "tax_percent": 21.0,
+     "commission_percent": 20.0,
+     "discount_percent": 0.0,
+     "base_cents": 10000,
+     "discount_cents": 0,
+     "tax_cents": 2100,
+     "total_cents": 12100,
+     "artist_payout_cents": 8000,
+     "arrival_date": "2026-10-22",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "created_at": "2026-10-28T13:15:02.973947+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 5000,
+   "discount_cents": 0,
+   "tax_cents": 1050,
+   "total_cents": 6050,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 7,
+     "order_id": 7,
+     "variant_id": 3,
+     "product_id": 2,
+     "artist_id": 1,
+     "product_name": "Unique vase",
+     "variant_label": "Standard",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 5000,
+     "tax_percent": 21.0,
+     "commission_percent": 40.0,
+     "discount_percent": 0.0,
+     "base_cents": 5000,
+     "discount_cents": 0,
+     "tax_cents": 1050,
+     "total_cents": 6050,
+     "artist_payout_cents": 3000,
+     "arrival_date": "2026-10-01",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "created_at": "2026-10-28T13:15:03.012724+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": "0477a7fe-2224-46fc-8bdf-b76c4e4f1657",
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 2000,
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 8,
+     "order_id": 8,
+     "variant_id": 4,
+     "product_id": 3,
+     "artist_id": 1,
+     "product_name": "Tote bag",
+     "variant_label": "Standard",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 2000,
+     "tax_percent": 21.0,
+     "commission_percent": 40.0,
+     "discount_percent": 0.0,
+     "base_cents": 2000,
+     "discount_cents": 0,
+     "tax_cents": 420,
+     "total_cents": 2420,
+     "artist_payout_cents": 1200,
+     "arrival_date": "2026-10-01",
+     "refunded_quantity": 0
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "created_at": "2026-10-28T13:15:03.015271+00:00",
+   "created_by": "7b0a5325-4efc-4c2f-8087-d28246906270",
+   "sale_ref": "9626bdca-ac38-43fd-9199-73396c0a22e7",
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": 1,
+   "event_tag_source": "auto",
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 2000,
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420,
+   "event_title": "Ceramics workshop",
+   "items": [
+    {
+     "id": 9,
+     "order_id": 9,
+     "variant_id": 4,
+     "product_id": 3,
+     "artist_id": 1,
+     "product_name": "Tote bag",
+     "variant_label": "Standard",
+     "category_name": "Prints & Posters",
+     "quantity": 1,
+     "unit_base_cents": 2000,
+     "tax_percent": 21.0,
+     "commission_percent": 40.0,
+     "discount_percent": 0.0,
+     "base_cents": 2000,
+     "discount_cents": 0,
+     "tax_cents": 420,
+     "total_cents": 2420,
+     "artist_payout_cents": 1200,
+     "arrival_date": "2026-10-01",
+     "refunded_quantity": 0
+    }
+   ]
+  }
+ ],
+ "report_order_summaries": [
+  {
+   "id": 1,
+   "created_at": "2026-10-28T13:15:02.851638+00:00",
+   "payment_method": "Card",
+   "discount_cents": 500,
+   "tax_cents": 1995,
+   "total_cents": 11495
+  },
+  {
+   "id": 2,
+   "created_at": "2026-10-28T13:15:02.866159+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100
+  },
+  {
+   "id": 3,
+   "created_at": "2026-10-28T13:15:02.874256+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100
+  },
+  {
+   "id": 4,
+   "created_at": "2026-10-28T13:15:02.880747+00:00",
+   "payment_method": "Card",
+   "discount_cents": 0,
+   "tax_cents": 6300,
+   "total_cents": 36300
+  },
+  {
+   "id": 5,
+   "created_at": "2026-10-28T13:15:02.892603+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100
+  },
+  {
+   "id": 6,
+   "created_at": "2026-10-28T13:15:02.898838+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100
+  },
+  {
+   "id": 7,
+   "created_at": "2026-10-28T13:15:02.973947+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 1050,
+   "total_cents": 6050
+  },
+  {
+   "id": 8,
+   "created_at": "2026-10-28T13:15:03.012724+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420
+  },
+  {
+   "id": 9,
+   "created_at": "2026-10-28T13:15:03.015271+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420
+  }
+ ],
+ "report_sold_items": [
+  {
+   "id": 1,
+   "order_id": 1,
+   "sold_at": "2026-10-28T13:15:02.851638+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A3 · Sun",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 9500,
+   "discount_cents": 500,
+   "tax_cents": 1995,
+   "total_cents": 11495,
+   "commission_percent": 35.0,
+   "artist_payout_cents": 6500,
+   "arrival_date": "2026-10-01"
+  },
+  {
+   "id": 2,
+   "order_id": 2,
+   "sold_at": "2026-10-28T13:15:02.866159+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 6000,
+   "arrival_date": "2026-10-01"
+  },
+  {
+   "id": 3,
+   "order_id": 3,
+   "sold_at": "2026-10-28T13:15:02.874256+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A3 · Sun",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 8000,
+   "arrival_date": "2026-10-20"
+  },
+  {
+   "id": 4,
+   "order_id": 4,
+   "sold_at": "2026-10-28T13:15:02.880747+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 3,
+   "unit_base_cents": 10000,
+   "base_cents": 30000,
+   "discount_cents": 0,
+   "tax_cents": 6300,
+   "total_cents": 36300,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 24000,
+   "arrival_date": "2026-10-21"
+  },
+  {
+   "id": 5,
+   "order_id": 5,
+   "sold_at": "2026-10-28T13:15:02.892603+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 8000,
+   "arrival_date": "2026-10-21"
+  },
+  {
+   "id": 6,
+   "order_id": 6,
+   "sold_at": "2026-10-28T13:15:02.898838+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 10000,
+   "discount_cents": 0,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 8000,
+   "arrival_date": "2026-10-22"
+  },
+  {
+   "id": 7,
+   "order_id": 7,
+   "sold_at": "2026-10-28T13:15:02.973947+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 2,
+   "product_name": "Unique vase",
+   "variant_label": "Standard",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 5000,
+   "base_cents": 5000,
+   "discount_cents": 0,
+   "tax_cents": 1050,
+   "total_cents": 6050,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 3000,
+   "arrival_date": "2026-10-01"
+  },
+  {
+   "id": 8,
+   "order_id": 8,
+   "sold_at": "2026-10-28T13:15:03.012724+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 3,
+   "product_name": "Tote bag",
+   "variant_label": "Standard",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 2000,
+   "base_cents": 2000,
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 1200,
+   "arrival_date": "2026-10-01"
+  },
+  {
+   "id": 9,
+   "order_id": 9,
+   "sold_at": "2026-10-28T13:15:03.015271+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 3,
+   "product_name": "Tote bag",
+   "variant_label": "Standard",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 2000,
+   "base_cents": 2000,
+   "discount_cents": 0,
+   "tax_cents": 420,
+   "total_cents": 2420,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 1200,
+   "arrival_date": "2026-10-01"
+  }
+ ],
+ "report_refunded_items": [
+  {
+   "id": 1,
+   "order_id": 4,
+   "refunded_at": "2026-10-28T13:15:02.885384+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "unit_base_cents": 10000,
+   "base_cents": 10000,
+   "tax_cents": 2100,
+   "total_cents": 12100,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 8000
+  },
+  {
+   "id": 2,
+   "order_id": 4,
+   "refunded_at": "2026-10-28T13:15:02.88972+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "variant_label": "A2",
+   "category_name": "Prints & Posters",
+   "quantity": 2,
+   "unit_base_cents": 10000,
+   "base_cents": 20000,
+   "tax_cents": 4200,
+   "total_cents": 24200,
+   "commission_percent": 20.0,
+   "artist_payout_cents": 16000
+  }
+ ],
+ "report_stock_items": [
+  {
+   "id": 1,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "artist_name": "Ana",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "arrival": "2026-10-20"
+  },
+  {
+   "id": 2,
+   "product_id": 1,
+   "product_name": "Sunset print",
+   "artist_name": "Ana",
+   "category_name": "Prints & Posters",
+   "quantity": 8,
+   "arrival": "2026-10-22"
+  },
+  {
+   "id": 4,
+   "product_id": 3,
+   "product_name": "Tote bag",
+   "artist_name": "Ana",
+   "category_name": "Prints & Posters",
+   "quantity": 1,
+   "arrival": "2026-10-01"
+  }
+ ]
+}

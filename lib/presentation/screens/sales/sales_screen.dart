@@ -176,7 +176,7 @@ class OrderCard extends ConsumerWidget {
           if (all.isEmpty)
             const Padding(
               padding: EdgeInsets.all(AppSpacing.xl),
-              child: Text('No sessions yet. Sync Google Calendar or add one in Invoices → Workshop sessions.'),
+              child: Text('No sessions yet. Add one in Invoices → Workshop sessions.'),
             ),
         ],
       ),

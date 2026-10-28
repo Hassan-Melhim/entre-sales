@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/ids.dart';
 import '../../../domain/business_rules.dart';
 import '../../../domain/models/cart_line.dart';
 import '../../../domain/models/cart_state.dart';
@@ -9,7 +10,7 @@ import '../../../domain/models/variant.dart';
 
 /// Changes to the sale being rung up.
 class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(CartState(paymentMethod: BusinessRules.paymentMethods.first));
+  CartNotifier() : super(CartState(paymentMethod: BusinessRules.paymentMethods.first, saleRef: newUuid()));
 
   /// Adds one unit (or [quantity]). Returns false if that would exceed stock.
   bool add(Product product, Variant variant, {int quantity = 1}) {
@@ -22,7 +23,7 @@ class CartNotifier extends StateNotifier<CartState> {
     } else {
       lines.add(CartLine(product: product, variant: variant, quantity: quantity));
     }
-    state = state.copyWith(lines: lines);
+    state = state.copyWith(lines: lines, saleRef: newUuid());
     return true;
   }
 
@@ -35,14 +36,16 @@ class CartNotifier extends StateNotifier<CartState> {
       if (quantity > lines[index].variant.quantity) return false;
       lines[index] = lines[index].withQuantity(quantity);
     }
-    state = state.copyWith(lines: lines);
+    state = state.copyWith(lines: lines, saleRef: newUuid());
     return true;
   }
 
   void setDiscount(Discount? d) =>
-      state = d == null ? state.copyWith(clearDiscount: true) : state.copyWith(discount: d);
-  void setPayment(String method) => state = state.copyWith(paymentMethod: method);
-  void clear() => state = CartState(paymentMethod: state.paymentMethod);
+      state = d == null
+          ? state.copyWith(clearDiscount: true, saleRef: newUuid())
+          : state.copyWith(discount: d, saleRef: newUuid());
+  void setPayment(String method) => state = state.copyWith(paymentMethod: method, saleRef: newUuid());
+  void clear() => state = CartState(paymentMethod: state.paymentMethod, saleRef: newUuid());
 }
 
 /// Kept outside the screen so the cart survives switching pages.

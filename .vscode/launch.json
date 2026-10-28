@@ -3,31 +3,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Entre Sales (website in Chrome)",
+      "name": "Entre Sales (Chrome)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
       "deviceId": "chrome"
     },
     {
-      "name": "Entre Sales (Windows)",
+      "name": "Entre Sales (Edge)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "deviceId": "windows"
-    },
-    {
-      "name": "Entre Sales (tablet / selected device)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart"
-    },
-    {
-      "name": "Entre Sales (release mode, selected device)",
-      "request": "launch",
-      "type": "dart",
-      "program": "lib/main.dart",
-      "flutterMode": "release"
+      "deviceId": "edge"
     }
   ]
 }

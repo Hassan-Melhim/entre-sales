@@ -10,13 +10,5 @@ class ExportFile {
 
   static const pdf = 'application/pdf';
   static const csv = 'text/csv';
-  static const sqlite = 'application/vnd.sqlite3';
-}
-
-/// What happened to a delivered file.
-class DeliveredFile {
-  /// Where it was saved (computers), so the UI can offer "Show in folder".
-  final String? savedPath;
-
-  const DeliveredFile({this.savedPath});
+  static const json = 'application/json';
 }

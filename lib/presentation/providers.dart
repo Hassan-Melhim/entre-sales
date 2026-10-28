@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sqflite_common/sqlite_api.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../data/calendar/google_calendar_service.dart';
-import '../data/sqlite/repositories/sqlite_artist_repository.dart';
-import '../data/sqlite/repositories/sqlite_category_repository.dart';
-import '../data/sqlite/repositories/sqlite_data_admin_repository.dart';
-import '../data/sqlite/repositories/sqlite_discount_repository.dart';
-import '../data/sqlite/repositories/sqlite_product_repository.dart';
-import '../data/sqlite/repositories/sqlite_report_repository.dart';
-import '../data/sqlite/repositories/sqlite_sales_repository.dart';
-import '../data/sqlite/repositories/sqlite_session_repository.dart';
-import '../data/sqlite/repositories/sqlite_settings_repository.dart';
+import '../data/supabase/repositories/supabase_artist_repository.dart';
+import '../data/supabase/repositories/supabase_auth_repository.dart';
+import '../data/supabase/repositories/supabase_backup_repository.dart';
+import '../data/supabase/repositories/supabase_category_repository.dart';
+import '../data/supabase/repositories/supabase_discount_repository.dart';
+import '../data/supabase/repositories/supabase_product_repository.dart';
+import '../data/supabase/repositories/supabase_report_repository.dart';
+import '../data/supabase/repositories/supabase_sales_repository.dart';
+import '../data/supabase/repositories/supabase_session_repository.dart';
+import '../data/supabase/repositories/supabase_settings_repository.dart';
+import '../domain/models/app_user.dart';
 import '../domain/models/artist.dart';
 import '../domain/models/artist_statement.dart';
 import '../domain/models/calendar_session.dart';
@@ -26,8 +27,10 @@ import '../domain/models/sale_order.dart';
 import '../domain/models/sales_report.dart';
 import '../domain/models/store_info.dart';
 import '../domain/repositories/artist_repository.dart';
+import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/backup_repository.dart';
 import '../domain/repositories/category_repository.dart';
-import '../domain/repositories/data_admin_repository.dart';
+import '../domain/repositories/device_settings_repository.dart';
 import '../domain/repositories/discount_repository.dart';
 import '../domain/repositories/product_repository.dart';
 import '../domain/repositories/report_repository.dart';
@@ -40,33 +43,63 @@ import 'theme/app_theme.dart';
 // ===================================================================== Wiring
 //
 // The only place that knows which database is used. Screens depend on the
-// repository interfaces; to move to Supabase, provide Supabase
-// implementations here and nothing else changes.
+// repository interfaces, never on Supabase directly.
 
-/// The open local database. Overridden in main() once opened.
-final databaseProvider = Provider<Database>((ref) => throw UnimplementedError('Database not opened'));
+/// The Supabase connection, opened in main().
+final supabaseProvider = Provider<SupabaseClient>((ref) => Supabase.instance.client);
 
+/// This device's own preferences. Overridden in main() once loaded.
+final deviceSettingsProvider =
+    Provider<DeviceSettingsRepository>((ref) => throw UnimplementedError('Device settings not loaded'));
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) => SupabaseAuthRepository(ref.watch(supabaseProvider).auth));
 final artistRepositoryProvider =
-    Provider<ArtistRepository>((ref) => SqliteArtistRepository(ref.watch(databaseProvider)));
+    Provider<ArtistRepository>((ref) => SupabaseArtistRepository(ref.watch(supabaseProvider)));
 final categoryRepositoryProvider =
-    Provider<CategoryRepository>((ref) => SqliteCategoryRepository(ref.watch(databaseProvider)));
+    Provider<CategoryRepository>((ref) => SupabaseCategoryRepository(ref.watch(supabaseProvider)));
 final productRepositoryProvider =
-    Provider<ProductRepository>((ref) => SqliteProductRepository(ref.watch(databaseProvider)));
-final salesRepositoryProvider = Provider<SalesRepository>((ref) => SqliteSalesRepository(ref.watch(databaseProvider)));
+    Provider<ProductRepository>((ref) => SupabaseProductRepository(ref.watch(supabaseProvider)));
+final salesRepositoryProvider = Provider<SalesRepository>((ref) => SupabaseSalesRepository(ref.watch(supabaseProvider)));
 final sessionRepositoryProvider =
-    Provider<SessionRepository>((ref) => SqliteSessionRepository(ref.watch(databaseProvider)));
+    Provider<SessionRepository>((ref) => SupabaseSessionRepository(ref.watch(supabaseProvider)));
 final discountRepositoryProvider =
-    Provider<DiscountRepository>((ref) => SqliteDiscountRepository(ref.watch(databaseProvider)));
+    Provider<DiscountRepository>((ref) => SupabaseDiscountRepository(ref.watch(supabaseProvider)));
 final settingsRepositoryProvider =
-    Provider<SettingsRepository>((ref) => SqliteSettingsRepository(ref.watch(databaseProvider)));
+    Provider<SettingsRepository>((ref) => SupabaseSettingsRepository(ref.watch(supabaseProvider)));
 final reportRepositoryProvider =
-    Provider<ReportRepository>((ref) => SqliteReportRepository(ref.watch(databaseProvider)));
-final dataAdminRepositoryProvider =
-    Provider<DataAdminRepository>((ref) => SqliteDataAdminRepository(ref.watch(databaseProvider)));
+    Provider<ReportRepository>((ref) => SupabaseReportRepository(ref.watch(supabaseProvider)));
+final backupRepositoryProvider =
+    Provider<BackupRepository>((ref) => SupabaseBackupRepository(ref.watch(supabaseProvider)));
 
 final reportServiceProvider = Provider((ref) => ReportService(ref.watch(reportRepositoryProvider)));
-final calendarServiceProvider = Provider(
-    (ref) => GoogleCalendarService(ref.watch(sessionRepositoryProvider), ref.watch(settingsRepositoryProvider)));
+
+// ================================================================ Signing in
+
+/// The signed-in owner, or null. Updates on sign-in, sign-out and expiry.
+final currentUserProvider = StreamProvider<AppUser?>((ref) async* {
+  final auth = ref.watch(authRepositoryProvider);
+  yield auth.currentUser;
+  yield* auth.userChanges;
+});
+
+/// Minutes without use before this device signs out (0 = never).
+final idleSignOutMinutesProvider = StateNotifierProvider<IdleSignOutController, int>(
+    (ref) => IdleSignOutController(ref.watch(deviceSettingsProvider)));
+
+class IdleSignOutController extends StateNotifier<int> {
+  /// Used until the owners choose otherwise on a device.
+  static const defaultMinutes = 30;
+  static const choices = [0, 5, 15, 30, 60, 120];
+
+  final DeviceSettingsRepository _settings;
+  IdleSignOutController(this._settings)
+      : super(int.tryParse(_settings.get(DeviceSettingKeys.idleSignOutMinutes) ?? '') ?? defaultMinutes);
+
+  Future<void> set(int minutes) async {
+    state = minutes;
+    await _settings.set(DeviceSettingKeys.idleSignOutMinutes, '$minutes');
+  }
+}
 
 // ================================================================== Refreshing
 
@@ -78,17 +111,18 @@ void refreshData(WidgetRef ref) => ref.read(dataRevisionProvider.notifier).state
 
 // ===================================================================== Theme
 
-/// Light / dark / follow the device. The starting value is read in main().
+/// Light / dark / follow the device; saved on this device only.
 final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
-    (ref) => throw UnimplementedError('Theme mode not loaded'));
+    (ref) => ThemeModeController(ref.watch(deviceSettingsProvider)));
 
 class ThemeModeController extends StateNotifier<ThemeMode> {
-  final SettingsRepository _settings;
-  ThemeModeController(this._settings, ThemeMode initial) : super(initial);
+  final DeviceSettingsRepository _settings;
+  ThemeModeController(this._settings)
+      : super(AppTheme.modeFromSetting(_settings.get(DeviceSettingKeys.themeMode)));
 
   Future<void> set(ThemeMode mode) async {
     state = mode;
-    await _settings.set(SettingKeys.themeMode, AppTheme.settingFromMode(mode));
+    await _settings.set(DeviceSettingKeys.themeMode, AppTheme.settingFromMode(mode));
   }
 }
 

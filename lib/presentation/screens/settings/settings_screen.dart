@@ -1,14 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/assets.dart';
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
-import '../../../data/calendar/google_calendar_service.dart';
 import '../../../data/export/export_file.dart';
 import '../../../domain/business_rules.dart';
 import '../../../domain/models/category_attribute.dart';
@@ -24,7 +20,6 @@ import '../../widgets/file_delivery.dart';
 import '../../widgets/info_row.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/responsive_fields.dart';
-import '../pos/cart.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -46,10 +41,8 @@ class SettingsScreen extends StatelessWidget {
                 _StoreSection(),
                 _CategoriesSection(),
                 _DiscountsSection(),
-                _CalendarSection(),
                 _RulesSection(),
                 _BackupSection(),
-                _DemoDataSection(),
               ],
             ),
           ),
@@ -105,18 +98,28 @@ class _Section extends StatelessWidget {
   }
 }
 
-// -------------------------------------------------------------- Appearance
+// ------------------------------------------------------------- This device
 
 class _AppearanceSection extends ConsumerWidget {
   const _AppearanceSection();
 
+  static String _idleLabel(int minutes) => switch (minutes) {
+        0 => 'Never',
+        < 60 => '$minutes minutes',
+        60 => '1 hour',
+        _ => '${minutes ~/ 60} hours',
+      };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
+    final idle = ref.watch(idleSignOutMinutesProvider);
     return _Section(
-      title: 'Appearance',
-      subtitle: 'Saved on this device',
+      title: 'This device',
+      subtitle: 'Saved in this browser only, so the iPad and each laptop can differ',
       children: [
+        Text('Appearance', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.s),
         Align(
           alignment: Alignment.centerLeft,
           child: SegmentedButton<ThemeMode>(
@@ -129,6 +132,22 @@ class _AppearanceSection extends ConsumerWidget {
             onSelectionChanged: (s) => ref.read(themeModeProvider.notifier).set(s.first),
           ),
         ),
+        const SizedBox(height: AppSpacing.l),
+        Text('Sign out automatically after', style: Theme.of(context).textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.s),
+        Wrap(
+          spacing: AppSpacing.s,
+          runSpacing: AppSpacing.s,
+          children: [
+            for (final m in {...IdleSignOutController.choices, idle})
+              ChoiceChip(
+                label: Text(_idleLabel(m)),
+                selected: m == idle,
+                onSelected: (_) => ref.read(idleSignOutMinutesProvider.notifier).set(m),
+              ),
+          ],
+        ),
+        Text('without use (no tap, click or key press).', style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -499,128 +518,6 @@ class _DiscountsSection extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------- Google Calendar
-
-class _CalendarSection extends ConsumerStatefulWidget {
-  const _CalendarSection();
-  @override
-  ConsumerState<_CalendarSection> createState() => _CalendarSectionState();
-}
-
-class _CalendarSectionState extends ConsumerState<_CalendarSection> {
-  final _calendarId = TextEditingController();
-  bool _busy = false;
-
-  @override
-  void initState() {
-    super.initState();
-    ref.read(settingsRepositoryProvider).get(SettingKeys.calendarId).then((v) {
-      if (mounted) _calendarId.text = v ?? '';
-    });
-  }
-
-  @override
-  void dispose() {
-    _calendarId.dispose();
-    super.dispose();
-  }
-
-  Future<void> _run(Future<void> Function() action) async {
-    setState(() => _busy = true);
-    try {
-      await action();
-    } catch (e) {
-      if (mounted) showMessage(context, '$e', error: true);
-    } finally {
-      refreshData(ref);
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const subtitle = 'Events with "${BusinessRules.workshopKeyword}" in the title become workshop sessions. '
-        'Sales during a session are tagged automatically.';
-
-    if (!GoogleCalendarService.isSupported) {
-      return const _Section(
-        title: 'Google Calendar',
-        subtitle: subtitle,
-        children: [
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.info_outline),
-            title: Text('Coming with the shared database'),
-            subtitle: Text('Calendar sync will run on the server so every device sees the same sessions. '
-                'Until then, add workshop sessions by hand in Invoices → Workshop sessions.'),
-          ),
-        ],
-      );
-    }
-
-    final account = ref.watch(settingProvider(SettingKeys.calendarAccount)).valueOrNull;
-    final lastSync = ref.watch(settingProvider(SettingKeys.calendarLastSync)).valueOrNull;
-    final service = ref.read(calendarServiceProvider);
-    return _Section(
-      title: 'Google Calendar',
-      subtitle: subtitle,
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.account_circle_outlined),
-          title: Text(account ?? 'Not connected'),
-          subtitle: Text(lastSync == null ? 'Never synced' : 'Last sync ${formatDateTime(fromDb(lastSync))}'),
-        ),
-        Wrap(
-          spacing: AppSpacing.s,
-          runSpacing: AppSpacing.s,
-          children: [
-            if (account == null)
-              FilledButton(onPressed: _busy ? null : () => _run(() async => service.signIn()), child: const Text('Connect'))
-            else ...[
-              OutlinedButton(onPressed: _busy ? null : () => _run(service.signOut), child: const Text('Disconnect')),
-              FilledButton.icon(
-                onPressed: _busy
-                    ? null
-                    : () => _run(() async {
-                          final n = await service.sync();
-                          if (mounted) showMessage(this.context, 'Synced: $n workshop session(s)');
-                        }),
-                icon: const Icon(Icons.sync),
-                label: const Text('Sync now'),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: AppSpacing.l),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _calendarId,
-                decoration: const InputDecoration(
-                  labelText: 'Calendar ID',
-                  helperText: 'Empty = main calendar of the account',
-                  hintText: 'abc123@group.calendar.google.com',
-                ),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.s),
-            OutlinedButton(
-              onPressed: () async {
-                await ref.read(settingsRepositoryProvider).set(SettingKeys.calendarId, _calendarId.text.trim());
-                refreshData(ref);
-                if (context.mounted) showMessage(context, 'Calendar ID saved');
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 // ---------------------------------------------------------- Business rules
 
 class _RulesSection extends StatelessWidget {
@@ -630,7 +527,7 @@ class _RulesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return const _Section(
       title: 'Business rules',
-      subtitle: 'Changed in the code: lib/domain/business_rules.dart',
+      subtitle: 'Changed in the code: lib/domain/business_rules.dart (and the matching rules in supabase/migrations)',
       children: [
         _RuleRows(),
       ],
@@ -667,138 +564,45 @@ class _RuleRows extends StatelessWidget {
 
 // ------------------------------------------------------------------ Backup
 
-class _BackupSection extends ConsumerWidget {
+/// Supabase keeps the data; this is an extra copy the owners control
+/// (the free Supabase plan makes no automatic backups).
+class _BackupSection extends ConsumerStatefulWidget {
   const _BackupSection();
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (kIsWeb) {
-      return const _Section(
-        title: 'Backup',
-        subtitle: 'In the browser, data is kept by the browser on this device only. '
-            'Automatic backups will come with the shared database.',
-        children: [],
-      );
-    }
-    return _Section(
-      title: 'Backup',
-      subtitle: 'All data lives only on this device. Save a copy of the database regularly.',
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              final bytes = await ref.read(dataAdminRepositoryProvider).exportBackup();
-              if (bytes == null) return;
-              await deliverExport(
-                ExportFile('entre_sales_backup_${fileStamp(DateTime.now())}.db', Uint8List.fromList(bytes), ExportFile.sqlite),
-                shareText: 'Entre Sales database backup ${formatDate(DateTime.now())}',
-              );
-            },
-            icon: const Icon(Icons.backup_outlined),
-            label: const Text('Save database backup'),
-          ),
-        ),
-      ],
-    );
-  }
+  ConsumerState<_BackupSection> createState() => _BackupSectionState();
 }
 
-// --------------------------------------------------------------- Demo data
+class _BackupSectionState extends ConsumerState<_BackupSection> {
+  bool _busy = false;
 
-/// Replaces all data with the demo data built from the September 2026
-/// inventory. Shown on the website (it only holds test data until the shared
-/// database exists), on computers and in debug builds; hidden in a release
-/// app on a phone or tablet so real data can't be wiped by accident.
-class _DemoDataSection extends ConsumerStatefulWidget {
-  const _DemoDataSection();
-
-  static bool get _visible =>
-      kIsWeb ||
-      !kReleaseMode ||
-      const {TargetPlatform.windows, TargetPlatform.macOS, TargetPlatform.linux}.contains(defaultTargetPlatform);
-
-  @override
-  ConsumerState<_DemoDataSection> createState() => _DemoDataSectionState();
-}
-
-class _DemoDataSectionState extends ConsumerState<_DemoDataSection> {
-  final _progress = ValueNotifier<double>(0);
-
-  @override
-  void dispose() {
-    _progress.dispose();
-    super.dispose();
-  }
-
-  Future<void> _load() async {
-    final ok = await confirm(
-      context,
-      'Load demo data?',
-      'This DELETES all artists, products, sales and workshop sessions on this device and replaces them '
-          'with demo data (the September 2026 inventory and a mock sales history from June to October).',
-      action: 'Delete and load',
-    );
-    if (!ok || !mounted) return;
-
-    _progress.value = 0;
-    final navigator = Navigator.of(context, rootNavigator: true);
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          title: const Text('Loading demo data…'),
-          content: SizedBox(
-            width: ctx.dialogWidth(AppSizes.dialogSmall),
-            child: ValueListenableBuilder<double>(
-              valueListenable: _progress,
-              builder: (_, v, __) => Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  LinearProgressIndicator(value: v),
-                  const SizedBox(height: AppSpacing.s),
-                  Text('${(v * 100).round()}%'),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
+  Future<void> _download() async {
+    setState(() => _busy = true);
     try {
-      final json = await rootBundle.loadString(AppAssets.demoData);
-      final result =
-          await ref.read(dataAdminRepositoryProvider).loadDemoData(json, onProgress: (p) => _progress.value = p);
-      ref.read(cartProvider.notifier).clear();
-      refreshData(ref);
-      navigator.pop();
-      if (mounted) showMessage(context, 'Demo data loaded: ${result.summary}');
+      final bytes = await ref.read(backupRepositoryProvider).exportBackup();
+      await deliverExport(ExportFile(
+          'entre_sales_backup_${fileStamp(DateTime.now())}.json', Uint8List.fromList(bytes), ExportFile.json));
     } catch (e) {
-      navigator.pop();
-      refreshData(ref);
-      if (mounted) showMessage(context, 'Could not load demo data: $e', error: true);
+      if (mounted) showMessage(context, 'Could not make the backup: $e', error: true);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_DemoDataSection._visible) return const SizedBox.shrink();
     return _Section(
-      title: 'Demo data',
-      subtitle: 'Fill the app with the September 2026 inventory and a mock sales history (June–October 2026) '
-          'to try every feature. Replaces all current data.',
+      title: 'Backup',
+      subtitle: 'Downloads all the store\'s data (artists, products, sales, refunds, history of changes) '
+          'as one file. Keep a copy somewhere safe, e.g. once a week.',
       children: [
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            onPressed: _load,
-            icon: const Icon(Icons.dataset_outlined),
-            label: const Text('Load demo data'),
+            onPressed: _busy ? null : _download,
+            icon: _busy
+                ? const SizedBox.square(dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.download_outlined),
+            label: const Text('Download backup'),
           ),
         ),
       ],

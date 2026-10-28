@@ -10,6 +10,7 @@ import '../../../domain/models/artist.dart';
 import '../../../domain/models/category_attribute.dart';
 import '../../../domain/models/product_category.dart';
 import '../../../domain/models/variant.dart';
+import '../../../domain/models/variant_input.dart';
 import '../../../domain/pricing.dart';
 import '../../providers.dart';
 import '../../theme/app_tokens.dart';
@@ -173,7 +174,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     final rows = _currentRows();
     final base = parseEurosToCents(_price.text)!;
 
-    final variants = <Variant>[];
+    final variants = <VariantInput>[];
     for (final r in rows) {
       final q = int.tryParse(r.quantity.text.trim());
       if (q == null || q < 0) {
@@ -192,16 +193,18 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       // overwrites the date of arrival). Otherwise the old date is kept.
       final arrival =
           (r.id == null || q > r.originalQuantity) ? _deliveryDate : (r.originalArrival ?? _deliveryDate);
-      variants.add(Variant(
+      variants.add(VariantInput(
         id: r.id,
         attributes: r.attributes,
         quantity: q,
+        quantityBefore: r.originalQuantity,
         priceOverrideCents: priceOverride,
         dateOfArrival: arrival,
       ));
     }
 
-    await ref.read(productRepositoryProvider).save(
+    try {
+      await ref.read(productRepositoryProvider).save(
           id: widget.productId,
           name: _name.text.trim(),
           artistId: _artistId!,
@@ -212,6 +215,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           commissionPercentOverride: _commission.text.trim().isEmpty ? null : parsePercent(_commission.text),
           variants: variants,
         );
+    } catch (e) {
+      if (mounted) showMessage(context, 'Could not save: $e', error: true);
+      return;
+    }
     refreshData(ref);
     if (mounted) Navigator.pop(context);
   }

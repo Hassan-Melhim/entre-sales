@@ -1,7 +1,7 @@
 name: entre_sales
-description: Inventory, POS, artist invoicing and reporting for Entre Salas concept store.
+description: Inventory, POS, artist invoicing and reporting for Entre Salas concept store (website).
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: '>=3.6.0 <4.0.0'
@@ -14,29 +14,23 @@ dependencies:
   # State management (no code generation needed)
   flutter_riverpod: ^2.6.1
 
-  # Local SQLite database (until the shared Supabase database is set up)
-  sqflite_common: ^2.5.4 # the common Database API used by the repositories
-  sqflite: ^2.4.2 # Android / iOS / macOS app
-  sqflite_common_ffi: ^2.3.4 # Windows / Linux, and tests
-  sqflite_common_ffi_web: ^1.0.0 # website: SQLite saved in the browser
-  path: ^1.9.0
-  path_provider: ^2.1.5
+  # Shared online database and sign-in
+  supabase_flutter: ^2.13.0
+
+  # Per-device preferences (light / dark mode, auto sign-out)
+  shared_preferences: ^2.3.0
 
   # Formatting
   intl: ^0.20.2
 
-  # PDF invoices / reports and sharing exported files
+  # PDF invoices / reports
   pdf: ^3.11.3
-  share_plus: ^10.1.4
-  web: ^1.1.0 # browser downloads on the website
+
+  # Browser downloads
+  web: ^1.1.0
 
   # Charts for reports
   fl_chart: ^0.70.2
-
-  # Google Calendar (workshop sessions)
-  google_sign_in: ^6.2.2
-  googleapis: ^13.2.0
-  extension_google_sign_in_as_googleapis_auth: ^2.0.12
 
 dev_dependencies:
   flutter_test:
@@ -48,4 +42,3 @@ flutter:
   assets:
     - assets/fonts/Lato-Regular.ttf
     - assets/fonts/Lato-Bold.ttf
-    - assets/demo/demo_data.json

@@ -26,10 +26,6 @@ String formatDayMonth(DateTime d) => _dayMonth.format(d);
 String fileStamp(DateTime d) =>
     '${d.year}${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
 
-/// ISO-8601 local time strings, e.g. 2026-10-16T15:30:00.000, used for storage.
-String toDb(DateTime d) => d.toIso8601String();
-DateTime fromDb(String s) => DateTime.parse(s);
-
 DateTime startOfDay(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Exclusive end: the first moment of the next day.

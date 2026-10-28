@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
-import '../../../data/calendar/google_calendar_service.dart';
 import '../../../data/export/csv_export_service.dart';
 import '../../../data/export/pdf_service.dart';
 import '../../../domain/business_rules.dart';
@@ -307,21 +306,6 @@ class _Sessions extends ConsumerStatefulWidget {
 }
 
 class _SessionsState extends ConsumerState<_Sessions> {
-  bool _syncing = false;
-
-  Future<void> _sync() async {
-    setState(() => _syncing = true);
-    try {
-      final n = await ref.read(calendarServiceProvider).sync();
-      refreshData(ref);
-      if (mounted) showMessage(context, 'Synced: $n workshop session(s) found');
-    } catch (e) {
-      if (mounted) showMessage(context, 'Calendar sync failed: $e', error: true);
-    } finally {
-      if (mounted) setState(() => _syncing = false);
-    }
-  }
-
   Future<void> _addManual() async {
     final title = TextEditingController(text: 'Workshop');
     var day = DateTime.now();
@@ -331,7 +315,7 @@ class _SessionsState extends ConsumerState<_Sessions> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('Add session by hand'),
+          title: const Text('Add workshop session'),
           content: SizedBox(
             width: ctx.dialogWidth(AppSizes.dialogSmall),
             child: Column(
@@ -385,8 +369,12 @@ class _SessionsState extends ConsumerState<_Sessions> {
       return;
     }
     final repo = ref.read(sessionRepositoryProvider);
-    await repo.add(CalendarSession(title: name.isEmpty ? 'Workshop' : name, start: s, end: e));
-    await repo.autoTagSales();
+    try {
+      await repo.add(CalendarSession(title: name.isEmpty ? 'Workshop' : name, start: s, end: e));
+      await repo.autoTagSales();
+    } catch (err) {
+      if (mounted) showMessage(context, 'Could not add the session: $err', error: true);
+    }
     refreshData(ref);
   }
 
@@ -404,19 +392,9 @@ class _SessionsState extends ConsumerState<_Sessions> {
             runSpacing: AppSpacing.s,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (GoogleCalendarService.isSupported)
-                FilledButton.icon(
-                  onPressed: _syncing ? null : _sync,
-                  icon: _syncing
-                      ? const SizedBox.square(
-                          dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.sync),
-                  label: const Text('Sync Google Calendar'),
-                ),
-              OutlinedButton.icon(onPressed: _addManual, icon: const Icon(Icons.add), label: const Text('Add by hand')),
-              if (!GoogleCalendarService.isSupported)
-                Text('Google Calendar sync will arrive with the shared database.',
-                    style: TextStyle(color: Theme.of(context).colorScheme.outline)),
+              FilledButton.icon(onPressed: _addManual, icon: const Icon(Icons.add), label: const Text('Add session')),
+              Text('Sales made during a session are tagged with it automatically.',
+                  style: TextStyle(color: Theme.of(context).colorScheme.outline)),
             ],
           ),
         ),
@@ -427,7 +405,7 @@ class _SessionsState extends ConsumerState<_Sessions> {
               if (list.isEmpty) {
                 return const EmptyState(
                   icon: Icons.event_outlined,
-                  message: 'No workshop sessions yet.\nAdd one by hand, or sync Google Calendar on the app.',
+                  message: 'No workshop sessions yet.\nAdd one with "Add session".',
                 );
               }
               return ListView.separated(

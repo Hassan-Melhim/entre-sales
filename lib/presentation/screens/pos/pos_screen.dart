@@ -397,7 +397,8 @@ class CartPanel extends ConsumerWidget {
     final success = context.appColors.success;
     try {
       final sales = ref.read(salesRepositoryProvider);
-      final orderId = await sales.checkout(lines: cart.lines, paymentMethod: cart.paymentMethod, discount: cart.discount);
+      final orderId = await sales.checkout(
+          lines: cart.lines, paymentMethod: cart.paymentMethod, discount: cart.discount, saleRef: cart.saleRef);
       // Read everything needed before the panel may be closed.
       final order = await sales.order(orderId);
       final store = await ref.read(storeInfoProvider.future);

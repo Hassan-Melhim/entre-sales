@@ -8,7 +8,12 @@ class CartState {
   final Discount? discount;
   final String paymentMethod;
 
-  const CartState({this.lines = const [], this.discount, required this.paymentMethod});
+  /// Identifies this exact sale. It changes whenever the cart changes, and
+  /// a repeated attempt with the same reference (e.g. after the connection
+  /// dropped) is recorded only once.
+  final String saleRef;
+
+  const CartState({this.lines = const [], this.discount, required this.paymentMethod, required this.saleRef});
 
   double get discountPercent => discount?.percent ?? 0;
 
@@ -37,10 +42,16 @@ class CartState {
   int quantityInCart(int variantId) =>
       lines.where((l) => l.variant.id == variantId).fold<int>(0, (s, l) => s + l.quantity);
 
-  CartState copyWith({List<CartLine>? lines, Discount? discount, bool clearDiscount = false, String? paymentMethod}) =>
+  CartState copyWith(
+          {required String saleRef,
+          List<CartLine>? lines,
+          Discount? discount,
+          bool clearDiscount = false,
+          String? paymentMethod}) =>
       CartState(
         lines: lines ?? this.lines,
         discount: clearDiscount ? null : (discount ?? this.discount),
         paymentMethod: paymentMethod ?? this.paymentMethod,
+        saleRef: saleRef,
       );
 }

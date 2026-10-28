@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../providers.dart';
 
 import '../theme/app_tokens.dart';
 import '../theme/breakpoints.dart';
@@ -14,11 +17,11 @@ import 'settings/settings_screen.dart';
 /// - phones / narrow windows: top bar with a menu drawer
 /// - iPad portrait: navigation rail (icons + labels)
 /// - iPad landscape / laptops: extended rail with labels beside icons
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
 class _Destination {
@@ -29,7 +32,7 @@ class _Destination {
   const _Destination(this.label, this.icon, this.selectedIcon, this.build);
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
 
   static final _destinations = <_Destination>[
@@ -48,6 +51,29 @@ class _AppShellState extends State<AppShell> {
         'entre',
         style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
       );
+
+  Future<void> _signOut() => ref.read(authRepositoryProvider).signOut();
+
+  /// Who is signed in, with a sign-out button.
+  Widget _account(BuildContext context, {required bool compact}) {
+    final email = ref.watch(currentUserProvider).valueOrNull?.email ?? '';
+    if (compact) {
+      return IconButton(tooltip: 'Sign out ($email)', icon: const Icon(Icons.logout), onPressed: _signOut);
+    }
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.m),
+      child: SizedBox(
+        width: AppSizes.railExtendedWidth - 2 * AppSpacing.m,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(email, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
+            TextButton.icon(onPressed: _signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +97,8 @@ class _AppShellState extends State<AppShell> {
             ),
             for (final d in _destinations)
               NavigationDrawerDestination(icon: Icon(d.icon), selectedIcon: Icon(d.selectedIcon), label: Text(d.label)),
+            const Divider(),
+            _account(context, compact: false),
           ],
         ),
         body: SafeArea(top: false, child: page),
@@ -82,31 +110,38 @@ class _AppShellState extends State<AppShell> {
       body: SafeArea(
         child: Row(
           children: [
-            // Scrollable so the rail never overflows on short screens.
-            LayoutBuilder(
-              builder: (context, c) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: c.maxHeight),
-                  child: IntrinsicHeight(
-                    child: NavigationRail(
-                      selectedIndex: _index,
-                      onDestinationSelected: _select,
-                      extended: extended,
-                      minExtendedWidth: AppSizes.railExtendedWidth,
-                      labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-                      leading: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.m),
-                        child: _brand(context),
+            Column(
+              children: [
+                Expanded(
+                  // Scrollable so the rail never overflows on short screens.
+                  child: LayoutBuilder(
+                    builder: (context, c) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: c.maxHeight),
+                        child: IntrinsicHeight(
+                          child: NavigationRail(
+                            selectedIndex: _index,
+                            onDestinationSelected: _select,
+                            extended: extended,
+                            minExtendedWidth: AppSizes.railExtendedWidth,
+                            labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+                            leading: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.m),
+                              child: _brand(context),
+                            ),
+                            destinations: [
+                              for (final d in _destinations)
+                                NavigationRailDestination(
+                                    icon: Icon(d.icon), selectedIcon: Icon(d.selectedIcon), label: Text(d.label)),
+                            ],
+                          ),
+                        ),
                       ),
-                      destinations: [
-                        for (final d in _destinations)
-                          NavigationRailDestination(
-                              icon: Icon(d.icon), selectedIcon: Icon(d.selectedIcon), label: Text(d.label)),
-                      ],
                     ),
                   ),
                 ),
-              ),
+                _account(context, compact: !extended),
+              ],
             ),
             const VerticalDivider(width: 1),
             Expanded(child: page),

@@ -1,4 +1,4 @@
-"""Builds assets/demo/demo_data.json from the store's inventory export.
+"""Builds tool/demo_data/demo_data.json from the store's inventory export.
 
 Usage (from the project root):
     pip install openpyxl
@@ -37,7 +37,7 @@ from catalog_mapping import (  # noqa: E402
 SEED = 2026
 HISTORY_START = dt.date(2026, 6, 1)
 HISTORY_END = dt.date(2026, 10, 18)  # last full day before the demo was made
-OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets', 'demo', 'demo_data.json')
+OUT = os.path.join(os.path.dirname(__file__), 'demo_data.json')
 
 # Opening hours: Mon, Wed–Sat 11–21, Sun 14–19, Tue closed. weekday(): Mon=0.
 OPENING = {0: (11, 21), 2: (11, 21), 3: (11, 21), 4: (11, 21), 5: (11, 21), 6: (14, 19)}
