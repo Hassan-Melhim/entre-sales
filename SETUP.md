@@ -64,7 +64,7 @@ For each one:
 3. Press **Run**. It should say **Success. No rows returned**.
    - File 1 shows *Potential issue detected … without enabling Row Level Security*: choose
      **Run and enable RLS**. (Row Level Security is the lock that keeps everyone except the signed-in
-     owners out; file 2 sets its rules.)
+     logins out; file 2 sets its rules.)
    - If Supabase asks to confirm a *destructive operation*, that's the `revoke` lines removing
      default access: confirm.
 
@@ -78,14 +78,15 @@ has 15 rows.
 **Authentication → Sign In / Providers** → turn **off** *Allow new users to sign up* → **Save**.
 Now only the accounts you create in the next step can sign in.
 
-### 3c. Create the three owner logins
+### 3c. Create the four logins
 
-**Authentication → Users → Add user → Create new user**, once per owner:
+**Authentication → Users → Add user → Create new user**, once for each of the three owners and once
+for the developer:
 
 - **Email** and a **password** (at least 12 characters; a password manager helps).
 - Tick **Auto Confirm User**.
 
-All three have exactly the same rights.
+All four have exactly the same rights.
 
 ### 3d. Load the demo data (to try things out)
 
@@ -96,7 +97,7 @@ So there's something realistic to sell, invoice and report on before the store g
 It adds the September 2026 inventory (40 artists, 266 products, 514 variants) and a mock sales
 history from 1 June to 18 October 2026: about 1,550 sales, refunds, restocks and 12 workshop
 sessions. The sales go through the same calculations as real ones and are recorded as made by
-the first owner login. It only runs on an empty store, and it's all removed in Part 7.
+the first login you created. It only runs on an empty store, and it's all removed in Part 7.
 
 ### Never share
 
@@ -114,7 +115,7 @@ flutter run -d chrome      # or: flutter run -d edge
 
 Or in VS Code: **Run and Debug** (`Ctrl+Shift+D`) → **Entre Sales (Chrome)** → **F5**.
 
-Sign in with one of the owner accounts. It's the **real** database: what you add here is what the
+Sign in with one of the four logins. It's the **real** database: what you add here is what the
 store sees (see Part 7 for clearing test data).
 
 `flutter test` doesn't need the internet. It checks the money formulas and that the app reads
@@ -171,7 +172,7 @@ store details and logins are kept, and sale numbers start again from 1.
 - **Free plan pause**: Supabase pauses a free project after 7 days without use. With the store open
   6 days a week that shouldn't happen; if it does, open the Supabase dashboard and press **Restore**.
 - **Who changed what**: every change is recorded in the `audit_log` table (Supabase → Table Editor),
-  with the owner's email and the time.
+  with the email of whoever made it and the time.
 
 ## Troubleshooting
 

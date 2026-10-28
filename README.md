@@ -4,7 +4,8 @@ Inventory, point of sale, artist payouts and sales reports for the Entre Salas c
 
 A **website** used from the store's iPad and the owners' MacBooks. The data lives in **Supabase**
 (one shared database, so every device sees the same stock and sales) and the site is hosted on **Vercel**.
-Each owner signs in with their own email and password; all three have the same rights.
+Four people sign in, each with their own email and password: the three owners and the developer.
+All four have the same rights.
 
 The layout adapts to phones, tablets (portrait or landscape) and computer windows, in light or dark mode.
 
@@ -94,7 +95,7 @@ Refunds are dated on the day of the refund and are deducted from the artist payo
 ## How the database keeps the money safe
 
 - **Signed-in owners only.** Without signing in, nothing can be read or changed. Sign-ups are closed;
-  the three logins are created in Supabase.
+  the four logins are created in Supabase.
 - **Sales are calculated by the database**, from the catalog: prices, VAT, discount and commission
   can't be altered by a device.
 - **Stock is checked and lowered in the same step as the sale**, so two devices can't sell the
