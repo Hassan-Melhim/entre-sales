@@ -20,6 +20,9 @@ Object translate(PostgrestException e) {
     // Not enough stock (raised by the checkout function).
     case 'ES001':
       return InsufficientStockException(_problems(e.details));
+    // An import refused by the database (names already there, etc.).
+    case 'ES002':
+      return ImportRejectedException(_problems(e.details));
     // Not signed in, or the session expired.
     case '42501':
     case 'PGRST301':

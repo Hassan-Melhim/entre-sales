@@ -30,3 +30,12 @@ class DataException implements Exception {
   @override
   String toString() => message;
 }
+
+/// The database refused an import; [problems] lists why, for the user.
+class ImportRejectedException implements Exception {
+  final List<String> problems;
+  ImportRejectedException(this.problems);
+
+  @override
+  String toString() => problems.join('\n');
+}

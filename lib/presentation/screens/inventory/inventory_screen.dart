@@ -19,8 +19,7 @@ import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/responsive_fields.dart';
-import '../../widgets/search_field.dart';
+import '../../widgets/product_filter_bar.dart';
 import '../../widgets/tag.dart';
 import 'product_form_screen.dart';
 
@@ -32,16 +31,11 @@ class InventoryScreen extends ConsumerStatefulWidget {
 }
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
-  String _query = '';
-  int? _artistId;
-  int? _categoryId;
+  ProductFilter _filter = const ProductFilter();
 
   @override
   Widget build(BuildContext context) {
-    final filter = ProductFilter(query: _query, artistId: _artistId, categoryId: _categoryId);
-    final products = ref.watch(productsProvider(filter));
-    final artists = ref.watch(artistsProvider).valueOrNull ?? [];
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final products = ref.watch(productsProvider(_filter));
     final pad = context.pagePadding;
 
     return Column(
@@ -62,33 +56,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               label: const Text('Log product'),
             ),
           ],
-          bottom: ResponsiveFields(
-            minRowWidth: AppLayout.filterRowMin,
-            flex: const [3, 2, 2],
-            children: [
-              SearchField(hint: 'Search by product or artist', onChanged: (v) => setState(() => _query = v)),
-              DropdownButtonFormField<int?>(
-                initialValue: _artistId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Artist'),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('All artists')),
-                  for (final a in artists) DropdownMenuItem(value: a.id, child: Text(a.name)),
-                ],
-                onChanged: (v) => setState(() => _artistId = v),
-              ),
-              DropdownButtonFormField<int?>(
-                initialValue: _categoryId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Category'),
-                items: [
-                  const DropdownMenuItem(value: null, child: Text('All categories')),
-                  for (final c in categories) DropdownMenuItem(value: c.id, child: Text(c.name)),
-                ],
-                onChanged: (v) => setState(() => _categoryId = v),
-              ),
-            ],
-          ),
+          bottom: ProductFilterBar(filter: _filter, onChanged: (f) => setState(() => _filter = f)),
         ),
         Expanded(
           child: AsyncView(

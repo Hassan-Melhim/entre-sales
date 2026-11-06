@@ -11,4 +11,5 @@ class ExportFile {
   static const pdf = 'application/pdf';
   static const csv = 'text/csv';
   static const json = 'application/json';
+  static const xlsx = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 }

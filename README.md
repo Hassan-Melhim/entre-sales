@@ -55,7 +55,7 @@ VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, ca
 
 ## How the app works
 
-- **Sell** – search, tap a product, pick a variant (stock shown per variant), choose cash/card,
+- **Sell** – search or filter by artist / category, tap a product, pick a variant (stock shown per variant), choose cash/card,
   optional Friends & Family discount, complete. Stock is re-checked when the sale is saved, so an item
   that is not in stock cannot be sold. Sales during a workshop session are tagged automatically.
 - **Inventory** – every product with its variants grouped together. Out-of-stock products sit at the
@@ -144,6 +144,20 @@ python tool/demo_data/make_demo_sql.py                                   # → l
 **Past sales** (one row per item of each receipt, with totals before and after VAT). Instructions are
 on its first tab. It's built by `tool/migration/make_import_template.py`.
 
+Each tab, saved as CSV, is imported in the app under **Settings → Import data** (SETUP.md Part 7):
+the files are checked first (all problems listed by row; existing names stop the import), then
+artists and products are added in one step and past sales in batches, as history that doesn't
+change stock. The checks are in `lib/domain/import/`, the database side in
+`supabase/migrations/20261106120000_import_and_logos.sql`.
+
+## Invoices and receipts
+
+PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,
+the store's address in the middle, the artist (or receipt details) on the right, the logo in the top
+corner, tables as rounded grey bars, and the horizontal logo at the foot of each page. The amounts
+are calculated as before. The logos are read from Supabase Storage, bucket **Logos & Icons**; the
+file names are set in `lib/core/app_config.dart` (`LogoFiles`). A missing logo is simply left out.
+
 ## Code layout
 
 The code is split in three layers. Each layer only uses the ones above it in this list:
@@ -176,6 +190,7 @@ vercel.json        how Vercel builds and serves the site
 test/
   pricing_test.dart            money formulas, date ranges, report periods
   supabase_mappers_test.dart   real Supabase rows → models, a report over them
+  import_test.dart             reading Excel CSVs, checking the import template tabs, batching
   widget_test.dart             widgets in light and dark mode
 ```
 

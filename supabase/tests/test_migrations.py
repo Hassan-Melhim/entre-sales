@@ -215,6 +215,70 @@ def main():
     other = one(c, 'select checkout(%s, %s, null, %s)', (line, 'Cash', str(uuid.uuid4())))[0]
     check(other != first, 'a new reference is a new sale')
 
+    print('import: catalogue')
+    stock_before = one(c, 'select coalesce(sum(quantity),0) from variants')[0]
+    res = one(c, 'select import_catalog(%s)', (json.dumps({
+        'artists': [{'name': 'Favorite Child Collective', 'is_spain_resident': True, 'commission_percent': None,
+                     'gender': 'Queer', 'legal_name': 'FCC S.L.', 'tax_id': 'B1', 'address': 'Barcelona',
+                     'iban': 'ES00 0000', 'bank_name': 'Demo Bank'}],
+        'products': [{'artist': 'favorite child collective', 'name': 'T Shirt', 'category': 'clothing',
+                      'base_price_cents': 2893, 'per_variant_pricing': False,
+                      'variants': [{'attributes': {'Style': 'Black', 'Size': 'M'}, 'quantity': 3, 'date_of_arrival': '2026-07-01'},
+                                   {'attributes': {'Style': 'Black', 'Size': 'L'}, 'quantity': 2, 'date_of_arrival': '2026-07-01'}]}]}),))[0]
+    check(res == {'artists': 1, 'products': 1, 'variants': 2}, f'catalogue imported {res}')
+    attrs = one(c, "select attributes::text from variants v join products p on p.id=v.product_id where p.name='T Shirt' order by v.id limit 1")[0]
+    check(json.loads(attrs, object_pairs_hook=list) == [('Style', 'Black'), ('Size', 'M')], 'imported variant keeps field order')
+    try:
+        c.execute('select import_catalog(%s)', (json.dumps({'artists': [{'name': 'ANA', 'is_spain_resident': True}],
+                                                         'products': [{'artist': 'Ana', 'name': 'sunset PRINT', 'category': 'Clothing',
+                                                                       'base_price_cents': 1, 'variants': []}]}),))
+        check(False, 'existing names refused')
+    except psycopg.Error as e:
+        detail = json.loads(e.diag.message_detail)
+        check(e.sqlstate == 'ES002' and len(detail) == 2, f'existing names refused, all listed: {detail}')
+    check(one(c, "select count(*) from artists where name='ANA'")[0] == 0, 'nothing written when refused')
+
+    print('import: past sales')
+    receipts = [
+        {'receipt': 'T-1024', 'at': '2026-07-12 17:42:00', 'payment': 'Card', 'discount': None,
+         'lines': [{'artist': 'Favorite Child Collective', 'product': 'T Shirt', 'category': 'Clothing',
+                    'variant': 'Black · M', 'quantity': 1, 'base_cents': 2893, 'total_cents': 3500, 'commission_percent': None}]},
+        {'receipt': 'T-1025', 'at': '2026-07-13 11:05:00', 'payment': 'Cash', 'discount': 'friends & family',
+         'lines': [{'artist': 'Favorite Child Collective', 'product': 'Old Tote', 'category': 'Accessories',
+                    'variant': '', 'quantity': 2, 'base_cents': 3800, 'total_cents': 4598, 'commission_percent': 40},
+                   {'artist': 'Ana', 'product': 'Zine', 'category': 'Books & Zines',
+                    'variant': None, 'quantity': 1, 'base_cents': 950, 'total_cents': 988, 'commission_percent': None}]},
+    ]
+    n = one(c, 'select import_past_sales(%s)', (json.dumps(receipts),))[0]
+    check(n == 2, 'two receipts imported')
+    check(one(c, 'select coalesce(sum(quantity),0) from variants')[0] == stock_before + 5, 'past sales leave stock alone')
+    o = one(c, "select id, to_char(created_at at time zone 'Europe/Madrid', 'YYYY-MM-DD HH24:MI'), payment_method, total_cents, subtotal_cents, created_by::text from orders where legacy_receipt='T-1024'")
+    check(o[1:] == ('2026-07-12 17:42', 'Card', 3500, 2893, OWNER), f'receipt time / totals / who {o[1:]}')
+    it = one(c, 'select artist_payout_cents, commission_percent, tax_percent, variant_id is not null, product_id is not null from order_items where order_id=%s', (o[0],))
+    check(it == (1880, 35, 21, True, True), f'template example: share 18.80 at 35%, VAT 21%, matched variant {it}')
+    o2 = one(c, "select id, discount_name, discount_cents, tax_cents, total_cents from orders where legacy_receipt='T-1025'")
+    check(o2[1] == 'Friends & Family' and o2[4] == 4598 + 988, f'discounted receipt {o2}')
+    lines = c.execute('select product_id is null, variant_label, discount_cents, artist_payout_cents, tax_percent, commission_percent from order_items where order_id=%s order by id', (o2[0],)).fetchall()
+    check(lines[0] == (True, 'Standard', 200, 2400, 21, 40), f'unknown product kept as history; payout on full price {lines[0]}')
+    check(float(lines[1][4]) == 4 and float(lines[1][5]) == 40, f'books 4% VAT; artist rate used {lines[1]}')
+    try:
+        c.execute('select import_past_sales(%s)', (json.dumps(receipts[:1]),))
+        check(False, 'repeat refused')
+    except psycopg.Error as e:
+        check(e.sqlstate == 'ES002' and 'T-1024' in e.diag.message_detail, 'importing a receipt twice is refused')
+    more = receipts[:1] + [{**receipts[0], 'receipt': 'T-1026'}]
+    check(one(c, 'select import_past_sales(%s, true)', (json.dumps(more),))[0] == 1, 'interrupted import can finish, skipping done receipts')
+    check(sorted(r[0] for r in c.execute("select * from imported_receipts(array['T-1024','T-9999','T-1026'])").fetchall()) == ['T-1024', 'T-1026'],
+          'imported_receipts lists the ones already in')
+    check(one(c, "select legacy_receipt from order_rows where legacy_receipt='T-1025'")[0] == 'T-1025', 'order list shows the old receipt number')
+    rep = one(c, "select count(*) from report_sold_items('2026-07-01', '2026-08-01')")[0]
+    check(rep == 4, f'past sales appear in July reports ({rep} lines)')
+    try:
+        anon.execute("select import_past_sales('[]')")
+        check(False, 'signed-out cannot import')
+    except psycopg.Error:
+        check(True, 'signed-out cannot import')
+
     print()
     print('FAILURES:', failures)
     sys.exit(1 if failures else 0)

@@ -11,7 +11,20 @@
    "bank_name": null,
    "is_spain_resident": true,
    "commission_percent": 40.0,
-   "created_at": "2026-10-28T13:28:15.677339+00:00"
+   "created_at": "2026-11-06T14:33:04.561623+00:00"
+  },
+  {
+   "id": 2,
+   "name": "Favorite Child Collective",
+   "gender": "Queer",
+   "address": "Barcelona",
+   "legal_name": "FCC S.L.",
+   "tax_id": "B1",
+   "iban": "ES00 0000",
+   "bank_name": "Demo Bank",
+   "is_spain_resident": true,
+   "commission_percent": null,
+   "created_at": "2026-11-06T14:33:04.686379+00:00"
   }
  ],
  "categories": [
@@ -300,7 +313,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": 20.0,
-   "created_at": "2026-10-28T13:28:15.680031+00:00",
+   "created_at": "2026-11-06T14:33:04.564529+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -338,7 +351,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": null,
-   "created_at": "2026-10-28T13:28:15.785381+00:00",
+   "created_at": "2026-11-06T14:33:04.62696+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -363,7 +376,7 @@
    "per_variant_pricing": false,
    "tax_percent_override": null,
    "commission_percent_override": null,
-   "created_at": "2026-10-28T13:28:15.850553+00:00",
+   "created_at": "2026-11-06T14:33:04.678124+00:00",
    "artist_name": "Ana",
    "artist_commission": 40.0,
    "category_name": "Prints & Posters",
@@ -376,6 +389,45 @@
      "quantity": 1,
      "price_override_cents": null,
      "date_of_arrival": "2026-10-01"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "artist_id": 2,
+   "category_id": 1,
+   "name": "T Shirt",
+   "base_price_cents": 2893,
+   "per_variant_pricing": false,
+   "tax_percent_override": null,
+   "commission_percent_override": null,
+   "created_at": "2026-11-06T14:33:04.686379+00:00",
+   "artist_name": "Favorite Child Collective",
+   "artist_commission": null,
+   "category_name": "Clothing",
+   "category_tax": 21.0,
+   "variants": [
+    {
+     "id": 5,
+     "product_id": 4,
+     "attributes": {
+      "Style": "Black",
+      "Size": "M"
+     },
+     "quantity": 3,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-07-01"
+    },
+    {
+     "id": 6,
+     "product_id": 4,
+     "attributes": {
+      "Style": "Black",
+      "Size": "L"
+     },
+     "quantity": 2,
+     "price_override_cents": null,
+     "date_of_arrival": "2026-07-01"
     }
    ]
   }
@@ -393,16 +445,16 @@
    "id": 1,
    "google_id": null,
    "title": "Ceramics workshop",
-   "start_at": "2026-10-28T12:28:15.751532+00:00",
-   "end_at": "2026-10-28T14:28:15.751532+00:00",
+   "start_at": "2026-11-06T13:33:04.602605+00:00",
+   "end_at": "2026-11-06T15:33:04.602605+00:00",
    "synced_at": null
   }
  ],
  "order_rows": [
   {
    "id": 1,
-   "created_at": "2026-10-28T13:28:15.687977+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.572354+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Card",
    "status": "completed",
@@ -439,12 +491,13 @@
      "arrival_date": "2026-10-01",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 2,
-   "created_at": "2026-10-28T13:28:15.6991+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.581466+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -481,12 +534,13 @@
      "arrival_date": "2026-10-01",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 3,
-   "created_at": "2026-10-28T13:28:15.704512+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.586329+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -523,12 +577,13 @@
      "arrival_date": "2026-10-20",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 4,
-   "created_at": "2026-10-28T13:28:15.709089+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.590068+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Card",
    "status": "refunded",
@@ -565,12 +620,13 @@
      "arrival_date": "2026-10-21",
      "refunded_quantity": 3
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 5,
-   "created_at": "2026-10-28T13:28:15.738426+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.598027+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -607,12 +663,13 @@
      "arrival_date": "2026-10-21",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 6,
-   "created_at": "2026-10-28T13:28:15.753416+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.604022+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -649,12 +706,13 @@
      "arrival_date": "2026-10-22",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 7,
-   "created_at": "2026-10-28T13:28:15.817276+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
+   "created_at": "2026-11-06T14:33:04.652565+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
    "sale_ref": null,
    "payment_method": "Cash",
    "status": "completed",
@@ -691,13 +749,14 @@
      "arrival_date": "2026-10-01",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 8,
-   "created_at": "2026-10-28T13:28:15.853678+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
-   "sale_ref": "41ef78b9-274f-4756-99a1-b7974920bb45",
+   "created_at": "2026-11-06T14:33:04.68158+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
+   "sale_ref": "332aa48f-6b8f-4024-8f63-fd40caaf39d9",
    "payment_method": "Cash",
    "status": "completed",
    "calendar_event_id": 1,
@@ -733,13 +792,14 @@
      "arrival_date": "2026-10-01",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
   },
   {
    "id": 9,
-   "created_at": "2026-10-28T13:28:15.856619+00:00",
-   "created_by": "e42a945a-d891-45be-927f-e38fcff2b472",
-   "sale_ref": "7979453e-2b67-43df-9fdd-3228db6b51ad",
+   "created_at": "2026-11-06T14:33:04.68414+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
+   "sale_ref": "14748f70-64ba-406f-b0c9-03e64e97aaef",
    "payment_method": "Cash",
    "status": "completed",
    "calendar_event_id": 1,
@@ -775,13 +835,165 @@
      "arrival_date": "2026-10-01",
      "refunded_quantity": 0
     }
-   ]
+   ],
+   "legacy_receipt": null
+  },
+  {
+   "id": 10,
+   "created_at": "2026-07-12T15:42:00+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
+   "sale_ref": null,
+   "payment_method": "Card",
+   "status": "completed",
+   "calendar_event_id": null,
+   "event_tag_source": null,
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 2893,
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500,
+   "event_title": null,
+   "items": [
+    {
+     "id": 10,
+     "order_id": 10,
+     "variant_id": 5,
+     "product_id": 4,
+     "artist_id": 2,
+     "product_name": "T Shirt",
+     "variant_label": "Black · M",
+     "category_name": "Clothing",
+     "quantity": 1,
+     "unit_base_cents": 2893,
+     "tax_percent": 21.0,
+     "commission_percent": 35.0,
+     "discount_percent": 0.0,
+     "base_cents": 2893,
+     "discount_cents": 0,
+     "tax_cents": 607,
+     "total_cents": 3500,
+     "artist_payout_cents": 1880,
+     "arrival_date": null,
+     "refunded_quantity": 0
+    }
+   ],
+   "legacy_receipt": "T-1024"
+  },
+  {
+   "id": 11,
+   "created_at": "2026-07-13T09:05:00+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
+   "sale_ref": null,
+   "payment_method": "Cash",
+   "status": "completed",
+   "calendar_event_id": null,
+   "event_tag_source": null,
+   "discount_id": null,
+   "discount_name": "Friends & Family",
+   "discount_percent": 5.0,
+   "subtotal_cents": 4750,
+   "discount_cents": 250,
+   "tax_cents": 836,
+   "total_cents": 5586,
+   "event_title": null,
+   "items": [
+    {
+     "id": 11,
+     "order_id": 11,
+     "variant_id": null,
+     "product_id": null,
+     "artist_id": 2,
+     "product_name": "Old Tote",
+     "variant_label": "Standard",
+     "category_name": "Accessories",
+     "quantity": 2,
+     "unit_base_cents": 2000,
+     "tax_percent": 21.0,
+     "commission_percent": 40.0,
+     "discount_percent": 5.0,
+     "base_cents": 3800,
+     "discount_cents": 200,
+     "tax_cents": 798,
+     "total_cents": 4598,
+     "artist_payout_cents": 2400,
+     "arrival_date": null,
+     "refunded_quantity": 0
+    },
+    {
+     "id": 12,
+     "order_id": 11,
+     "variant_id": null,
+     "product_id": null,
+     "artist_id": 1,
+     "product_name": "Zine",
+     "variant_label": "Standard",
+     "category_name": "Books & Zines",
+     "quantity": 1,
+     "unit_base_cents": 1000,
+     "tax_percent": 4.0,
+     "commission_percent": 40.0,
+     "discount_percent": 5.0,
+     "base_cents": 950,
+     "discount_cents": 50,
+     "tax_cents": 38,
+     "total_cents": 988,
+     "artist_payout_cents": 600,
+     "arrival_date": null,
+     "refunded_quantity": 0
+    }
+   ],
+   "legacy_receipt": "T-1025"
+  },
+  {
+   "id": 12,
+   "created_at": "2026-07-12T15:42:00+00:00",
+   "created_by": "76a8b3ef-9585-4920-8afb-2a0f40ce24b1",
+   "sale_ref": null,
+   "payment_method": "Card",
+   "status": "completed",
+   "calendar_event_id": null,
+   "event_tag_source": null,
+   "discount_id": null,
+   "discount_name": null,
+   "discount_percent": 0.0,
+   "subtotal_cents": 2893,
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500,
+   "event_title": null,
+   "items": [
+    {
+     "id": 13,
+     "order_id": 12,
+     "variant_id": 5,
+     "product_id": 4,
+     "artist_id": 2,
+     "product_name": "T Shirt",
+     "variant_label": "Black · M",
+     "category_name": "Clothing",
+     "quantity": 1,
+     "unit_base_cents": 2893,
+     "tax_percent": 21.0,
+     "commission_percent": 35.0,
+     "discount_percent": 0.0,
+     "base_cents": 2893,
+     "discount_cents": 0,
+     "tax_cents": 607,
+     "total_cents": 3500,
+     "artist_payout_cents": 1880,
+     "arrival_date": null,
+     "refunded_quantity": 0
+    }
+   ],
+   "legacy_receipt": "T-1026"
   }
  ],
  "report_order_summaries": [
   {
    "id": 1,
-   "created_at": "2026-10-28T13:28:15.687977+00:00",
+   "created_at": "2026-11-06T14:33:04.572354+00:00",
    "payment_method": "Card",
    "discount_cents": 500,
    "tax_cents": 1995,
@@ -789,7 +1001,7 @@
   },
   {
    "id": 2,
-   "created_at": "2026-10-28T13:28:15.6991+00:00",
+   "created_at": "2026-11-06T14:33:04.581466+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -797,7 +1009,7 @@
   },
   {
    "id": 3,
-   "created_at": "2026-10-28T13:28:15.704512+00:00",
+   "created_at": "2026-11-06T14:33:04.586329+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -805,7 +1017,7 @@
   },
   {
    "id": 4,
-   "created_at": "2026-10-28T13:28:15.709089+00:00",
+   "created_at": "2026-11-06T14:33:04.590068+00:00",
    "payment_method": "Card",
    "discount_cents": 0,
    "tax_cents": 6300,
@@ -813,7 +1025,7 @@
   },
   {
    "id": 5,
-   "created_at": "2026-10-28T13:28:15.738426+00:00",
+   "created_at": "2026-11-06T14:33:04.598027+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -821,7 +1033,7 @@
   },
   {
    "id": 6,
-   "created_at": "2026-10-28T13:28:15.753416+00:00",
+   "created_at": "2026-11-06T14:33:04.604022+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 2100,
@@ -829,7 +1041,7 @@
   },
   {
    "id": 7,
-   "created_at": "2026-10-28T13:28:15.817276+00:00",
+   "created_at": "2026-11-06T14:33:04.652565+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 1050,
@@ -837,7 +1049,7 @@
   },
   {
    "id": 8,
-   "created_at": "2026-10-28T13:28:15.853678+00:00",
+   "created_at": "2026-11-06T14:33:04.68158+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 420,
@@ -845,18 +1057,42 @@
   },
   {
    "id": 9,
-   "created_at": "2026-10-28T13:28:15.856619+00:00",
+   "created_at": "2026-11-06T14:33:04.68414+00:00",
    "payment_method": "Cash",
    "discount_cents": 0,
    "tax_cents": 420,
    "total_cents": 2420
+  },
+  {
+   "id": 10,
+   "created_at": "2026-07-12T15:42:00+00:00",
+   "payment_method": "Card",
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500
+  },
+  {
+   "id": 11,
+   "created_at": "2026-07-13T09:05:00+00:00",
+   "payment_method": "Cash",
+   "discount_cents": 250,
+   "tax_cents": 836,
+   "total_cents": 5586
+  },
+  {
+   "id": 12,
+   "created_at": "2026-07-12T15:42:00+00:00",
+   "payment_method": "Card",
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500
   }
  ],
  "report_sold_items": [
   {
    "id": 1,
    "order_id": 1,
-   "sold_at": "2026-10-28T13:28:15.687977+00:00",
+   "sold_at": "2026-11-06T14:33:04.572354+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -878,7 +1114,7 @@
   {
    "id": 2,
    "order_id": 2,
-   "sold_at": "2026-10-28T13:28:15.6991+00:00",
+   "sold_at": "2026-11-06T14:33:04.581466+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -900,7 +1136,7 @@
   {
    "id": 3,
    "order_id": 3,
-   "sold_at": "2026-10-28T13:28:15.704512+00:00",
+   "sold_at": "2026-11-06T14:33:04.586329+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -922,7 +1158,7 @@
   {
    "id": 4,
    "order_id": 4,
-   "sold_at": "2026-10-28T13:28:15.709089+00:00",
+   "sold_at": "2026-11-06T14:33:04.590068+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -944,7 +1180,7 @@
   {
    "id": 5,
    "order_id": 5,
-   "sold_at": "2026-10-28T13:28:15.738426+00:00",
+   "sold_at": "2026-11-06T14:33:04.598027+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -966,7 +1202,7 @@
   {
    "id": 6,
    "order_id": 6,
-   "sold_at": "2026-10-28T13:28:15.753416+00:00",
+   "sold_at": "2026-11-06T14:33:04.604022+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -988,7 +1224,7 @@
   {
    "id": 7,
    "order_id": 7,
-   "sold_at": "2026-10-28T13:28:15.817276+00:00",
+   "sold_at": "2026-11-06T14:33:04.652565+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1010,7 +1246,7 @@
   {
    "id": 8,
    "order_id": 8,
-   "sold_at": "2026-10-28T13:28:15.853678+00:00",
+   "sold_at": "2026-11-06T14:33:04.68158+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1032,7 +1268,7 @@
   {
    "id": 9,
    "order_id": 9,
-   "sold_at": "2026-10-28T13:28:15.856619+00:00",
+   "sold_at": "2026-11-06T14:33:04.68414+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1050,13 +1286,101 @@
    "commission_percent": 40.0,
    "artist_payout_cents": 1200,
    "arrival_date": "2026-10-01"
+  },
+  {
+   "id": 10,
+   "order_id": 10,
+   "sold_at": "2026-07-12T15:42:00+00:00",
+   "artist_id": 2,
+   "artist_name": "Favorite Child Collective",
+   "artist_gender": "Queer",
+   "artist_resident": true,
+   "product_id": 4,
+   "product_name": "T Shirt",
+   "variant_label": "Black · M",
+   "category_name": "Clothing",
+   "quantity": 1,
+   "unit_base_cents": 2893,
+   "base_cents": 2893,
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500,
+   "commission_percent": 35.0,
+   "artist_payout_cents": 1880,
+   "arrival_date": null
+  },
+  {
+   "id": 11,
+   "order_id": 11,
+   "sold_at": "2026-07-13T09:05:00+00:00",
+   "artist_id": 2,
+   "artist_name": "Favorite Child Collective",
+   "artist_gender": "Queer",
+   "artist_resident": true,
+   "product_id": null,
+   "product_name": "Old Tote",
+   "variant_label": "Standard",
+   "category_name": "Accessories",
+   "quantity": 2,
+   "unit_base_cents": 2000,
+   "base_cents": 3800,
+   "discount_cents": 200,
+   "tax_cents": 798,
+   "total_cents": 4598,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 2400,
+   "arrival_date": null
+  },
+  {
+   "id": 12,
+   "order_id": 11,
+   "sold_at": "2026-07-13T09:05:00+00:00",
+   "artist_id": 1,
+   "artist_name": "Ana",
+   "artist_gender": null,
+   "artist_resident": true,
+   "product_id": null,
+   "product_name": "Zine",
+   "variant_label": "Standard",
+   "category_name": "Books & Zines",
+   "quantity": 1,
+   "unit_base_cents": 1000,
+   "base_cents": 950,
+   "discount_cents": 50,
+   "tax_cents": 38,
+   "total_cents": 988,
+   "commission_percent": 40.0,
+   "artist_payout_cents": 600,
+   "arrival_date": null
+  },
+  {
+   "id": 13,
+   "order_id": 12,
+   "sold_at": "2026-07-12T15:42:00+00:00",
+   "artist_id": 2,
+   "artist_name": "Favorite Child Collective",
+   "artist_gender": "Queer",
+   "artist_resident": true,
+   "product_id": 4,
+   "product_name": "T Shirt",
+   "variant_label": "Black · M",
+   "category_name": "Clothing",
+   "quantity": 1,
+   "unit_base_cents": 2893,
+   "base_cents": 2893,
+   "discount_cents": 0,
+   "tax_cents": 607,
+   "total_cents": 3500,
+   "commission_percent": 35.0,
+   "artist_payout_cents": 1880,
+   "arrival_date": null
   }
  ],
  "report_refunded_items": [
   {
    "id": 1,
    "order_id": 4,
-   "refunded_at": "2026-10-28T13:28:15.721044+00:00",
+   "refunded_at": "2026-11-06T14:33:04.592563+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1076,7 +1400,7 @@
   {
    "id": 2,
    "order_id": 4,
-   "refunded_at": "2026-10-28T13:28:15.729903+00:00",
+   "refunded_at": "2026-11-06T14:33:04.595332+00:00",
    "artist_id": 1,
    "artist_name": "Ana",
    "artist_gender": null,
@@ -1121,6 +1445,24 @@
    "category_name": "Prints & Posters",
    "quantity": 1,
    "arrival": "2026-10-01"
+  },
+  {
+   "id": 5,
+   "product_id": 4,
+   "product_name": "T Shirt",
+   "artist_name": "Favorite Child Collective",
+   "category_name": "Clothing",
+   "quantity": 3,
+   "arrival": "2026-07-01"
+  },
+  {
+   "id": 6,
+   "product_id": 4,
+   "product_name": "T Shirt",
+   "artist_name": "Favorite Child Collective",
+   "category_name": "Clothing",
+   "quantity": 2,
+   "arrival": "2026-07-01"
   }
  ]
 }

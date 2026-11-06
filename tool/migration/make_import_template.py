@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.join(ROOT, 'tool', 'demo_data'))
 from catalog_mapping import CATEGORIES  # same list the database starts with
 
 OUT = os.path.join(ROOT, 'migration', 'Entre Sales - data import template.xlsx')
+# The same file inside the app (Settings → Import data → Download template).
+APP_COPY = os.path.join(ROOT, 'assets', 'templates', 'data_import_template.xlsx')
 ROWS = 3000  # rows prepared with dropdowns / formats
 
 FONT = 'Arial'
@@ -288,4 +290,8 @@ ws.freeze_panes = 'A2'
 wb.move_sheet('Lists', offset=10)  # keep the hidden list last
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 wb.save(OUT)
-print('written', os.path.relpath(OUT, ROOT))
+os.makedirs(os.path.dirname(APP_COPY), exist_ok=True)
+import shutil
+shutil.copyfile(OUT, APP_COPY)
+print('written', os.path.relpath(OUT, ROOT), 'and', os.path.relpath(APP_COPY, ROOT))
+print('Excel fills in the check column when the file is opened.')

@@ -7,6 +7,8 @@ import '../data/supabase/repositories/supabase_auth_repository.dart';
 import '../data/supabase/repositories/supabase_backup_repository.dart';
 import '../data/supabase/repositories/supabase_category_repository.dart';
 import '../data/supabase/repositories/supabase_discount_repository.dart';
+import '../data/supabase/repositories/supabase_import_repository.dart';
+import '../data/supabase/repositories/supabase_logo_repository.dart';
 import '../data/supabase/repositories/supabase_product_repository.dart';
 import '../data/supabase/repositories/supabase_report_repository.dart';
 import '../data/supabase/repositories/supabase_sales_repository.dart';
@@ -26,12 +28,15 @@ import '../domain/models/report_period.dart';
 import '../domain/models/sale_order.dart';
 import '../domain/models/sales_report.dart';
 import '../domain/models/store_info.dart';
+import '../domain/models/store_logos.dart';
 import '../domain/repositories/artist_repository.dart';
 import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../domain/repositories/category_repository.dart';
 import '../domain/repositories/device_settings_repository.dart';
 import '../domain/repositories/discount_repository.dart';
+import '../domain/repositories/import_repository.dart';
+import '../domain/repositories/logo_repository.dart';
 import '../domain/repositories/product_repository.dart';
 import '../domain/repositories/report_repository.dart';
 import '../domain/repositories/sales_repository.dart';
@@ -68,6 +73,9 @@ final settingsRepositoryProvider =
     Provider<SettingsRepository>((ref) => SupabaseSettingsRepository(ref.watch(supabaseProvider)));
 final reportRepositoryProvider =
     Provider<ReportRepository>((ref) => SupabaseReportRepository(ref.watch(supabaseProvider)));
+final importRepositoryProvider =
+    Provider<ImportRepository>((ref) => SupabaseImportRepository(ref.watch(supabaseProvider)));
+final logoRepositoryProvider = Provider<LogoRepository>((ref) => SupabaseLogoRepository(ref.watch(supabaseProvider)));
 final backupRepositoryProvider =
     Provider<BackupRepository>((ref) => SupabaseBackupRepository(ref.watch(supabaseProvider)));
 
@@ -164,6 +172,9 @@ final settingProvider = FutureProvider.family<String?, String>((ref, key) {
 });
 
 /// Store details printed on PDFs.
+/// The PDF logos, downloaded once per visit (they rarely change).
+final storeLogosProvider = FutureProvider<StoreLogos>((ref) => ref.watch(logoRepositoryProvider).logos());
+
 final storeInfoProvider = FutureProvider<StoreInfo>((ref) async {
   ref.watch(dataRevisionProvider);
   final s = ref.watch(settingsRepositoryProvider);
@@ -172,6 +183,7 @@ final storeInfoProvider = FutureProvider<StoreInfo>((ref) async {
     name: clean(await s.get(SettingKeys.storeName)) ?? 'Entre Salas',
     address: clean(await s.get(SettingKeys.storeAddress)),
     taxId: clean(await s.get(SettingKeys.storeTaxId)),
+    logos: await ref.watch(storeLogosProvider.future),
   );
 });
 

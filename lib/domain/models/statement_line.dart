@@ -11,6 +11,10 @@ class StatementLine {
   final double commissionPercent;
   final int payoutCents;
 
+  /// [baseCents] with VAT added at the rate charged: the shelf price of
+  /// these units (shown as "Full Price (+IVA)" on invoices; display only).
+  final int fullPriceCents;
+
   const StatementLine({
     required this.date,
     required this.orderNumber,
@@ -20,6 +24,7 @@ class StatementLine {
     required this.baseCents,
     required this.commissionPercent,
     required this.payoutCents,
+    required this.fullPriceCents,
   });
 
   int get commissionCents => baseCents - payoutCents;

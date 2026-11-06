@@ -20,6 +20,7 @@ import '../../widgets/file_delivery.dart';
 import '../../widgets/info_row.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/responsive_fields.dart';
+import 'import_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -42,6 +43,7 @@ class SettingsScreen extends StatelessWidget {
                 _CategoriesSection(),
                 _DiscountsSection(),
                 _RulesSection(),
+                _ImportSection(),
                 _BackupSection(),
               ],
             ),
@@ -555,6 +557,31 @@ class _RuleRows extends StatelessWidget {
               '${BusinessRules.profitSubtractsArtistResidentTax && BusinessRules.residentTaxAddedOnTop ? ' − resident tax added' : ''}',
         ),
         const InfoRow('Payout periods', 'Calendar month, or any date range'),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------------ Import
+
+class _ImportSection extends StatelessWidget {
+  const _ImportSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Section(
+      title: 'Import data',
+      subtitle: 'Bring in artists, products with stock, and past sales from the old system, '
+          'using the import template saved as CSV files. Everything is checked before anything is added.',
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
+            icon: const Icon(Icons.upload_file_outlined),
+            label: const Text('Import data'),
+          ),
+        ),
       ],
     );
   }

@@ -17,7 +17,7 @@ import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/search_field.dart';
+import '../../widgets/product_filter_bar.dart';
 import '../../widgets/tag.dart';
 import 'cart.dart';
 
@@ -34,7 +34,7 @@ class PosScreen extends ConsumerStatefulWidget {
 }
 
 class _PosScreenState extends ConsumerState<PosScreen> {
-  String _query = '';
+  ProductFilter _filter = const ProductFilter();
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   Widget _productPicker() {
-    final products = ref.watch(productsProvider(ProductFilter(query: _query)));
+    final products = ref.watch(productsProvider(_filter));
     final session = ref.watch(currentSessionProvider).valueOrNull;
     final pad = context.pagePadding;
     return Column(
@@ -71,7 +71,11 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           actions: [
             if (session != null) Tag('Workshop now: ${session.title}', color: context.appColors.session, icon: Icons.event),
           ],
-          bottom: SearchField(hint: 'Search product or artist', onChanged: (v) => setState(() => _query = v)),
+          bottom: ProductFilterBar(
+            filter: _filter,
+            searchHint: 'Search product or artist',
+            onChanged: (f) => setState(() => _filter = f),
+          ),
         ),
         Expanded(
           child: AsyncView(

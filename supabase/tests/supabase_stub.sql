@@ -14,3 +14,9 @@ grant execute on function auth.uid() to anon, authenticated;
 -- Supabase grants everything on new public tables/functions by default.
 alter default privileges in schema public grant all on tables to anon, authenticated;
 alter default privileges in schema public grant all on functions to anon, authenticated;
+-- Storage (only what the migrations touch).
+create schema storage;
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text);
+alter table storage.objects enable row level security;
+grant usage on schema storage to anon, authenticated;
+grant select on storage.objects to anon, authenticated;

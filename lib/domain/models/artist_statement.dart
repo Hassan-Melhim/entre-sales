@@ -20,6 +20,9 @@ class ArtistStatement {
   int get soldUnits => _sum(sales, (l) => l.quantity) - _sum(refunds, (l) => l.quantity);
   int get salesBaseCents => _sum(sales, (l) => l.baseCents) - _sum(refunds, (l) => l.baseCents);
   int get payoutCents => _sum(sales, (l) => l.payoutCents) - _sum(refunds, (l) => l.payoutCents);
+
+  /// Shelf value incl. VAT of what was sold, net of refunds (display only).
+  int get fullPriceCents => _sum(sales, (l) => l.fullPriceCents) - _sum(refunds, (l) => l.fullPriceCents);
   int get commissionCents => salesBaseCents - payoutCents;
 
   double get residentTaxPercent => artist.isSpainResident ? BusinessRules.spainResidentArtistTaxPercent : 0;

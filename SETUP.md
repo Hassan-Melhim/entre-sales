@@ -50,12 +50,14 @@ In the Supabase dashboard, project **mddsniqoqhutzthbleve**.
 
 ### 3a. Create the tables, security and functions
 
-The setup is in three files in the repository, in `supabase/migrations/`. Run them **in this order,
-once each**:
+The setup is in files in the repository, in `supabase/migrations/`. Run them **in this order,
+once each** (if you ran the first three earlier, just run the newer ones):
 
 1. `20261028120000_tables.sql`
 2. `20261028120100_security.sql`
 3. `20261028120200_functions.sql`
+4. `20261106120000_import_and_logos.sql`: importing from the old system, and letting the PDFs read
+   the logos in Storage. It may show the *destructive operation* warning (confirm).
 
 For each one:
 
@@ -163,6 +165,17 @@ entered while testing:
 
 That empties artists, products, sales, sessions and the change history. Categories, discounts,
 store details and logins are kept, and sale numbers start again from 1.
+
+3. Bring in the real data: **Settings → Import data**.
+   - Fill in the import template (there's a **Download the template** link on that screen).
+   - In Excel, save each tab as its own CSV: open the tab → **File → Save As → CSV UTF-8**.
+     The Spanish Excel's semicolons and decimal commas are fine.
+   - Choose the files (any of Artists, Products, Past sales) → **Check files**. Every problem is
+     listed with its row; nothing is added until there are none. Names that already exist in the
+     app count as problems.
+   - **Import**. Artists and products go in together; past sales follow in batches, as history:
+     they show in reports and invoices but don't change stock. If the connection drops part-way,
+     check again and tick **Skip receipts already imported** to finish.
 
 ## Everyday
 

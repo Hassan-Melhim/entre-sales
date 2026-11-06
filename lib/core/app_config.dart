@@ -17,3 +17,19 @@ abstract final class AppConfig {
     defaultValue: 'sb_publishable_IzHJKaJuukexKlBXW8omVg_5XBFypuE',
   );
 }
+
+/// The logos printed on PDFs, read from Supabase Storage (bucket and file
+/// names exactly as they appear there). A missing file just leaves that
+/// logo out.
+abstract final class LogoFiles {
+  static const bucket = 'Logos & Icons';
+
+  /// Top corner of every invoice and receipt.
+  static const corner = 'logo.png';
+
+  /// Across the bottom of each page.
+  static const footer = 'logo-horizontal.png';
+
+  /// The three kisses, next to the title.
+  static const kisses = 'kisses.png';
+}

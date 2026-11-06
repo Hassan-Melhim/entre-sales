@@ -54,6 +54,7 @@ class ArtistStatementBuilder {
             baseCents: _commissionBase(s.baseCents, s.unitBaseCents, s.quantity),
             commissionPercent: s.commissionPercent,
             payoutCents: s.artistPayoutCents,
+            fullPriceCents: _withVat(_commissionBase(s.baseCents, s.unitBaseCents, s.quantity), s.baseCents, s.totalCents),
           ),
       ],
       refunds: [
@@ -67,6 +68,7 @@ class ArtistStatementBuilder {
             baseCents: _commissionBase(r.baseCents, r.unitBaseCents, r.quantity),
             commissionPercent: r.commissionPercent,
             payoutCents: r.artistPayoutCents,
+            fullPriceCents: _withVat(_commissionBase(r.baseCents, r.unitBaseCents, r.quantity), r.baseCents, r.totalCents),
           ),
       ],
     );
@@ -76,4 +78,9 @@ class ArtistStatementBuilder {
   /// absorbs discounts, the artist is credited on the undiscounted price.
   static int _commissionBase(int discountedBase, int unitBase, int quantity) =>
       BusinessRules.discountReducesArtistPayout ? discountedBase : unitBase * quantity;
+
+  /// [amount] (before VAT) with VAT added at the rate charged on the line
+  /// (its total over its base).
+  static int _withVat(int amount, int lineBase, int lineTotal) =>
+      lineBase == 0 ? amount : (amount * lineTotal / lineBase).round();
 }
