@@ -28,4 +28,7 @@ linux/
 
 # Source spreadsheets used to build demo data (kept out of the repository)
 *.xlsx
+# …except the import template (shipped in the app and kept for filling in)
+!assets/templates/data_import_template.xlsx
+!migration/*.xlsx
 __pycache__/
