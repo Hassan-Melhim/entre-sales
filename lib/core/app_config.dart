@@ -25,11 +25,11 @@ abstract final class LogoFiles {
   static const bucket = 'Logos & Icons';
 
   /// Top corner of every invoice and receipt.
-  static const corner = 'logo.png';
+  static const corner = 'ES_GoogleProfileThumbnail.png';
 
   /// Across the bottom of each page.
-  static const footer = 'logo-horizontal.png';
+  static const footer = 'ES_Logo_3d_horizontalThumbnail.png';
 
   /// The three kisses, next to the title.
-  static const kisses = 'kisses.png';
+  static const kisses = 'ES_stamp_kissingThumbnail.png';
 }
