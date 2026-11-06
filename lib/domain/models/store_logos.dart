@@ -13,6 +13,9 @@ class StoreLogos {
   final LogoImage? footer;
   final LogoImage? kisses;
 
-  const StoreLogos({this.corner, this.footer, this.kisses});
+  /// Why a logo couldn't be loaded, one line per file (empty when all are fine).
+  final List<String> problems;
+
+  const StoreLogos({this.corner, this.footer, this.kisses, this.problems = const []});
   const StoreLogos.none() : this();
 }

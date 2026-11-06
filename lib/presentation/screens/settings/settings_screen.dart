@@ -12,6 +12,7 @@ import '../../../domain/models/discount.dart';
 import '../../../domain/models/product_category.dart';
 import '../../../domain/repositories/settings_repository.dart';
 import '../../providers.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
 import '../../widgets/async_view.dart';
@@ -214,7 +215,52 @@ class _StoreSectionState extends ConsumerState<_StoreSection> {
             TextField(controller: _taxId, decoration: const InputDecoration(labelText: 'NIF / CIF')),
           ],
         ),
+        const SizedBox(height: AppSpacing.m),
+        const _LogoStatus(),
       ],
+    );
+  }
+}
+
+/// Whether the PDF logos could be read from Supabase Storage, and why not.
+class _LogoStatus extends ConsumerWidget {
+  const _LogoStatus();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logos = ref.watch(storeLogosProvider);
+    final theme = Theme.of(context);
+    final reload = TextButton.icon(
+      onPressed: () => ref.invalidate(storeLogosProvider),
+      icon: const Icon(Icons.refresh),
+      label: const Text('Reload logos'),
+    );
+    return logos.when(
+      loading: () => const Row(children: [
+        SizedBox.square(dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2)),
+        SizedBox(width: AppSpacing.s),
+        Text('Loading the logos…'),
+      ]),
+      error: (e, _) => Row(children: [Expanded(child: Text('Logos: $e')), reload]),
+      data: (l) {
+        if (l.problems.isEmpty) {
+          return Row(children: [
+            Icon(Icons.check_circle, color: context.appColors.success, size: AppSizes.iconSmall),
+            const SizedBox(width: AppSpacing.s),
+            const Expanded(child: Text('Logos for PDFs: all 3 found.')),
+            reload,
+          ]);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Logos for PDFs: ${3 - l.problems.length} of 3 found.',
+                style: TextStyle(color: theme.colorScheme.error)),
+            for (final p in l.problems) SelectableText('• $p', style: theme.textTheme.bodySmall),
+            reload,
+          ],
+        );
+      },
     );
   }
 }

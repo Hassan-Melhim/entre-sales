@@ -182,7 +182,7 @@ class PdfService {
               color: r.isEven ? _barRow : _barRowAlt, borderRadius: pw.BorderRadius.circular(_rowRadius)),
           child: r < rows.length
               ? line([for (var i = 0; i < rows[r].length; i++) _cell(rows[r][i], right: rightAligned.contains(i))])
-              : pw.SizedBox(),
+              : pw.SizedBox(width: double.infinity),
         ),
     ];
   }
