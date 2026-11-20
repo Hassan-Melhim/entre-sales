@@ -28,7 +28,7 @@ abstract final class LogoFiles {
   static const bucket = 'Logos & Icons';
 
   /// Top corner of invoices, receipts and reports.
-  static const corner = 'ESB_Logo_Square.png';
+  static const corner = 'ESB_Logo_square.png';
 
   /// Across the bottom of each page.
   static const footer = 'ES_Logo_3d_horizontalThumbnail.png';
