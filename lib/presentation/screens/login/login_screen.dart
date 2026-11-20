@@ -27,7 +27,7 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('entre',
+                  Text('¿Entre quién?',
                       style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
                   const SizedBox(height: AppSpacing.xs),
                   Text('Who\'s working today?',
