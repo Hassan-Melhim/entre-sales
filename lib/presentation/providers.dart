@@ -16,6 +16,7 @@ import '../data/supabase/repositories/supabase_report_repository.dart';
 import '../data/supabase/repositories/supabase_sales_repository.dart';
 import '../data/supabase/repositories/supabase_session_repository.dart';
 import '../data/supabase/repositories/supabase_settings_repository.dart';
+import '../core/app_config.dart';
 import '../domain/models/app_user.dart';
 import '../domain/models/artist.dart';
 import '../domain/models/artist_statement.dart';
@@ -179,17 +180,13 @@ final settingProvider = FutureProvider.family<String?, String>((ref, key) {
 /// The PDF logos, downloaded once per visit (they rarely change).
 final storeLogosProvider = FutureProvider<StoreLogos>((ref) => ref.watch(logoRepositoryProvider).logos());
 
-final storeInfoProvider = FutureProvider<StoreInfo>((ref) async {
-  ref.watch(dataRevisionProvider);
-  final s = ref.watch(settingsRepositoryProvider);
-  String? clean(String? v) => (v == null || v.trim().isEmpty) ? null : v.trim();
-  return StoreInfo(
-    name: clean(await s.get(SettingKeys.storeName)) ?? 'Entre Salas',
-    address: clean(await s.get(SettingKeys.storeAddress)),
-    taxId: clean(await s.get(SettingKeys.storeTaxId)),
-    logos: await ref.watch(storeLogosProvider.future),
-  );
-});
+/// The store's details (fixed, see StoreDetails) and logos, for PDFs.
+final storeInfoProvider = FutureProvider<StoreInfo>((ref) async => StoreInfo(
+      name: StoreDetails.name,
+      address: StoreDetails.address,
+      taxId: StoreDetails.taxId,
+      logos: await ref.watch(storeLogosProvider.future),
+    ));
 
 /// Workshop session running right now (re-checked when data changes).
 final currentSessionProvider = FutureProvider<CalendarSession?>((ref) {

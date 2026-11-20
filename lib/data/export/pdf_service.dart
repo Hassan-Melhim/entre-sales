@@ -77,12 +77,13 @@ class PdfService {
       );
 
   /// Title (with the three kisses under it) · store address · [right] block,
-  /// and the corner logo.
-  static pw.Widget _header(StoreInfo store, String title, String subtitle, {pw.Widget? right}) {
-    final kisses = _logo(store.logos.kisses, 22);
-    final corner = _logo(store.logos.corner, 44);
+  /// and the corner logo. [small] scales it for an A5 page (receipts).
+  static pw.Widget _header(StoreInfo store, String title, String subtitle, {pw.Widget? right, bool small = false}) {
+    final k = small ? 0.72 : 1.0;
+    final kisses = _logo(store.logos.kisses, 22 * k);
+    final corner = _logo(store.logos.corner, 44 * k);
     return pw.Padding(
-      padding: const pw.EdgeInsets.only(bottom: 18),
+      padding: pw.EdgeInsets.only(bottom: 18 * k),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -91,34 +92,35 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text(title, style: pw.TextStyle(fontSize: 26, fontWeight: pw.FontWeight.bold, lineSpacing: -2)),
-                pw.Text(subtitle, style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
+                pw.Text(title, style: pw.TextStyle(fontSize: 26 * k, fontWeight: pw.FontWeight.bold, lineSpacing: -2)),
+                pw.Text(subtitle, style: pw.TextStyle(fontSize: 13 * k, fontWeight: pw.FontWeight.bold)),
                 if (kisses != null)
                   pw.Padding(
-                    padding: const pw.EdgeInsets.only(top: 8, left: 90),
+                    padding: pw.EdgeInsets.only(top: 8 * k, left: 90 * k),
                     child: kisses,
                   ),
               ],
             ),
           ),
-          pw.SizedBox(width: 12),
-          pw.Expanded(flex: 4, child: _storeBlock(store)),
-          pw.SizedBox(width: 12),
+          pw.SizedBox(width: 12 * k),
+          pw.Expanded(flex: 4, child: _storeBlock(store, fontSize: 11 * k)),
+          pw.SizedBox(width: 12 * k),
           pw.Expanded(flex: 4, child: right ?? pw.SizedBox()),
-          if (corner != null) ...[pw.SizedBox(width: 12), corner],
+          if (corner != null) ...[pw.SizedBox(width: 12 * k), corner],
         ],
       ),
     );
   }
 
   /// "Name" in bold over plain lines, for the right of the header.
-  static pw.Widget _headerBlock(String bold, List<String> lines, {List<String> small = const []}) => pw.Column(
+  static pw.Widget _headerBlock(String bold, List<String> lines, {List<String> small = const [], double scale = 1}) =>
+      pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(bold, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-          for (final l in lines) pw.Text(l, style: const pw.TextStyle(fontSize: 11)),
-          if (small.isNotEmpty) pw.SizedBox(height: 4),
-          for (final l in small) pw.Text(l, style: const pw.TextStyle(fontSize: 8, color: _muted)),
+          pw.Text(bold, style: pw.TextStyle(fontSize: 12 * scale, fontWeight: pw.FontWeight.bold)),
+          for (final l in lines) pw.Text(l, style: pw.TextStyle(fontSize: 11 * scale)),
+          if (small.isNotEmpty) pw.SizedBox(height: 4 * scale),
+          for (final l in small) pw.Text(l, style: pw.TextStyle(fontSize: 8 * scale, color: _muted)),
         ],
       );
 
@@ -213,10 +215,10 @@ class PdfService {
       ];
 
   /// The horizontal logo centred at the foot of each page, page numbers under it.
-  static pw.Widget Function(pw.Context) _footer(StoreInfo store) => (ctx) => pw.Column(
+  static pw.Widget Function(pw.Context) _footer(StoreInfo store, {double logoHeight = 30}) => (ctx) => pw.Column(
         mainAxisSize: pw.MainAxisSize.min,
         children: [
-          if (_logo(store.logos.footer, 30) case final logo?) pw.Center(child: logo),
+          if (_logo(store.logos.footer, logoHeight) case final logo?) pw.Center(child: logo),
           pw.SizedBox(height: 6),
           pw.Align(
             alignment: pw.Alignment.centerRight,
@@ -241,76 +243,57 @@ class PdfService {
 
   // ------------------------------------------------------------------ Receipt
 
+  /// The customer's receipt: A5, in the same style as the invoices.
   static Future<ExportFile> receipt(SaleOrder o, StoreInfo store) async {
     final doc = pw.Document(theme: await _loadTheme());
-    final corner = _logo(store.logos.receiptCorner, 38);
-    final kisses = _logo(store.logos.kisses, 18);
-    final footerLogo = _logo(store.logos.footer, 26);
-    doc.addPage(pw.Page(
+    doc.addPage(pw.MultiPage(
       pageFormat: PdfPageFormat.a5,
-      margin: const pw.EdgeInsets.fromLTRB(26, 26, 26, 20),
-      build: (ctx) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-        children: [
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Expanded(
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    pw.Text('Receipt', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
-                    pw.Text('${o.number} · ${formatDateTime(o.createdAt)}',
-                        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                  ],
-                ),
-              ),
-              if (corner != null) corner,
-            ],
-          ),
-          pw.SizedBox(height: 10),
-          pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            children: [
-              pw.Expanded(child: _storeBlock(store, fontSize: 9)),
-              if (kisses != null) kisses,
-            ],
-          ),
-          pw.SizedBox(height: 14),
-          ..._table(
-            ['Item', 'Qty', 'Price\n(+IVA)', 'Total'],
-            [
-              for (final i in o.items)
-                [
-                  i.variantLabel == 'Standard' ? i.productName : '${i.productName}\n${i.variantLabel}',
-                  '${i.quantity}',
-                  formatCents(Pricing.unitPriceWithTax(i.unitBaseCents, i.taxPercent)),
-                  formatCents(i.totalCents),
-                ],
-            ],
-            rightAligned: {1, 2, 3},
-            flex: const [5, 1, 2, 2],
-            headerFontSize: 9,
-          ),
-          ..._totals([
-            ('Subtotal sin IVA', formatCents(o.subtotalCents + o.discountCents)),
-            if (o.discountCents > 0)
-              ('${o.discountName} (${formatPercent(o.discountPercent)})', _neg(formatCents(o.discountCents))),
-            ('IVA', formatCents(o.taxCents)),
-            ('Total · ${o.paymentMethod}', formatCents(o.totalCents)),
-          ]),
-          if (o.status != OrderStatus.completed) ...[
-            pw.SizedBox(height: 8),
-            pw.Text('Status: ${o.status.label}', style: const pw.TextStyle(color: PdfColors.red800)),
+      margin: const pw.EdgeInsets.fromLTRB(24, 24, 24, 16),
+      footer: _footer(store, logoHeight: 22),
+      build: (ctx) => [
+        _header(
+          store,
+          'Receipt',
+          o.number,
+          small: true,
+          right: _headerBlock(formatDateTime(o.createdAt), ['Paid by ${o.paymentMethod.toLowerCase()}'], scale: 0.72),
+        ),
+        ..._table(
+          ['Item', 'Qty', 'Price\n(+IVA)', 'Total'],
+          [
+            for (final i in o.items)
+              [
+                i.variantLabel == 'Standard' ? i.productName : '${i.productName}\n${i.variantLabel}',
+                '${i.quantity}',
+                formatCents(Pricing.unitPriceWithTax(i.unitBaseCents, i.taxPercent)),
+                formatCents(i.totalCents),
+              ],
           ],
-          pw.Spacer(),
-          pw.Center(
+          rightAligned: {1, 2, 3},
+          flex: const [5, 1, 2, 2],
+          headerFontSize: 9,
+          minRows: 4,
+        ),
+        ..._totals([
+          ('Subtotal sin IVA', formatCents(o.subtotalCents + o.discountCents)),
+          if (o.discountCents > 0)
+            ('${o.discountName} (${formatPercent(o.discountPercent)})', _neg(formatCents(o.discountCents))),
+          ('IVA', formatCents(o.taxCents)),
+          ('Total', formatCents(o.totalCents)),
+        ]),
+        if (o.status != OrderStatus.completed)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(top: 8, left: 14),
+            child: pw.Text('Status: ${o.status.label}', style: const pw.TextStyle(color: PdfColors.red800)),
+          ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(top: 18),
+          child: pw.Center(
             child: pw.Text('Thank you for supporting independent artists',
                 style: const pw.TextStyle(fontSize: 9, color: _muted)),
           ),
-          if (footerLogo != null) ...[pw.SizedBox(height: 8), pw.Center(child: footerLogo)],
-        ],
-      ),
+        ),
+      ],
     ));
     return _save(doc, 'receipt_${o.id}.pdf');
   }

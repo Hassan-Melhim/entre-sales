@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/money.dart';
-import '../../../data/export/pdf_service.dart';
 import '../../../domain/business_rules.dart';
 import '../../../domain/exceptions.dart';
 import '../../../domain/models/product.dart';
@@ -12,10 +11,10 @@ import '../../providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
+import '../../widgets/receipt_actions.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/product_filter_bar.dart';
 import '../../widgets/tag.dart';
@@ -405,7 +404,6 @@ class CartPanel extends ConsumerWidget {
           lines: cart.lines, paymentMethod: cart.paymentMethod, discount: cart.discount, saleRef: cart.saleRef);
       // Read everything needed before the panel may be closed.
       final order = await sales.order(orderId);
-      final store = await ref.read(storeInfoProvider.future);
       ref.read(cartProvider.notifier).clear();
       refreshData(ref);
       onClose?.call();
@@ -416,14 +414,17 @@ class CartPanel extends ConsumerWidget {
         builder: (ctx) => AlertDialog(
           icon: Icon(Icons.check_circle, color: success, size: AppSizes.emptyStateIcon),
           title: Text('Sale ${order.number} recorded'),
-          content: Text('${formatCents(order.totalCents)} · ${order.paymentMethod}'
-              '${order.calendarEventTitle != null ? '\nTagged with session: ${order.calendarEventTitle}' : ''}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('${formatCents(order.totalCents)} · ${order.paymentMethod}'
+                  '${order.calendarEventTitle != null ? '\nTagged with session: ${order.calendarEventTitle}' : ''}',
+                  textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.l),
+              ReceiptActions(order: order),
+            ],
+          ),
           actions: [
-            TextButton.icon(
-              onPressed: () async => deliverExport(await PdfService.receipt(order, store)),
-              icon: const Icon(Icons.picture_as_pdf_outlined),
-              label: const Text('Receipt PDF'),
-            ),
             FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('New sale')),
           ],
         ),

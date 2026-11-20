@@ -91,5 +91,4 @@ class AppLayout {
   /// Rows of form fields from these widths.
   static const double filterRowMin = 720;
   static const double productFieldsRowMin = 760;
-  static const double storeFieldsRowMin = 700;
 }

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
 import '../../../data/export/csv_export_service.dart';
-import '../../../data/export/pdf_service.dart';
 import '../../../domain/models/date_range.dart';
 import '../../../domain/models/order_filter.dart';
 import '../../../domain/models/order_status.dart';
@@ -13,6 +12,7 @@ import '../../providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
+import '../../widgets/receipt_actions.dart';
 import '../../widgets/adaptive_button.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/date_range_field.dart';
@@ -129,10 +129,9 @@ class OrderCard extends ConsumerWidget {
               runSpacing: AppSpacing.s,
               children: [
                 OutlinedButton.icon(
-                  onPressed: () async =>
-                      deliverExport(await PdfService.receipt(o, await ref.read(storeInfoProvider.future))),
-                  icon: const Icon(Icons.picture_as_pdf_outlined),
-                  label: const Text('Receipt PDF'),
+                  onPressed: () => showReceiptDialog(context, o),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: const Text('Receipt'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () => _tagSession(context, ref),

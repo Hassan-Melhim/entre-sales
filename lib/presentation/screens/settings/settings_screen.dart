@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/app_config.dart';
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
 import '../../../data/export/export_file.dart';
@@ -10,7 +11,6 @@ import '../../../domain/business_rules.dart';
 import '../../../domain/models/category_attribute.dart';
 import '../../../domain/models/discount.dart';
 import '../../../domain/models/product_category.dart';
-import '../../../domain/repositories/settings_repository.dart';
 import '../../providers.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
@@ -156,65 +156,21 @@ class _AppearanceSection extends ConsumerWidget {
 
 // ------------------------------------------------------------------- Store
 
-class _StoreSection extends ConsumerStatefulWidget {
+class _StoreSection extends StatelessWidget {
   const _StoreSection();
-  @override
-  ConsumerState<_StoreSection> createState() => _StoreSectionState();
-}
-
-class _StoreSectionState extends ConsumerState<_StoreSection> {
-  final _name = TextEditingController();
-  final _address = TextEditingController();
-  final _taxId = TextEditingController();
-  bool _loaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final s = ref.read(settingsRepositoryProvider);
-    _name.text = await s.get(SettingKeys.storeName) ?? 'Entre Salas';
-    _address.text = await s.get(SettingKeys.storeAddress) ?? '';
-    _taxId.text = await s.get(SettingKeys.storeTaxId) ?? '';
-    if (mounted) setState(() => _loaded = true);
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _address.dispose();
-    _taxId.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final s = ref.read(settingsRepositoryProvider);
-    await s.set(SettingKeys.storeName, _name.text.trim());
-    await s.set(SettingKeys.storeAddress, _address.text.trim());
-    await s.set(SettingKeys.storeTaxId, _taxId.text.trim());
-    refreshData(ref);
-    if (mounted) showMessage(context, 'Store details saved');
-  }
 
   @override
   Widget build(BuildContext context) {
+    final muted = TextStyle(color: Theme.of(context).colorScheme.outline);
     return _Section(
       title: 'Store details',
-      subtitle: 'Printed at the top of receipts, invoices and reports',
-      action: FilledButton(onPressed: _loaded ? _save : null, child: const Text('Save')),
+      subtitle: 'Printed at the top of invoices, receipts and reports',
       children: [
-        ResponsiveFields(
-          flex: const [1, 2, 1],
-          minRowWidth: AppLayout.storeFieldsRowMin,
-          children: [
-            TextField(controller: _name, decoration: const InputDecoration(labelText: 'Store name')),
-            TextField(controller: _address, decoration: const InputDecoration(labelText: 'Address')),
-            TextField(controller: _taxId, decoration: const InputDecoration(labelText: 'NIF / CIF')),
-          ],
-        ),
+        Text(StoreDetails.name, style: Theme.of(context).textTheme.titleSmall),
+        Text(StoreDetails.address),
+        Text('NIF ${StoreDetails.taxId}'),
+        const SizedBox(height: AppSpacing.xs),
+        Text('To change these, edit lib/core/app_config.dart.', style: muted),
         const SizedBox(height: AppSpacing.m),
         const _LogoStatus(),
       ],
@@ -247,14 +203,14 @@ class _LogoStatus extends ConsumerWidget {
           return Row(children: [
             Icon(Icons.check_circle, color: context.appColors.success, size: AppSizes.iconSmall),
             const SizedBox(width: AppSpacing.s),
-            const Expanded(child: Text('Logos for PDFs: all 4 found.')),
+            const Expanded(child: Text('Logos for PDFs: all 3 found.')),
             reload,
           ]);
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Logos for PDFs: ${4 - l.problems.length} of 4 found.',
+            Text('Logos for PDFs: ${3 - l.problems.length} of 3 found.',
                 style: TextStyle(color: theme.colorScheme.error)),
             for (final p in l.problems) SelectableText('• $p', style: theme.textTheme.bodySmall),
             reload,

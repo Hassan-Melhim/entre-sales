@@ -157,7 +157,7 @@ change stock. The checks are in `lib/domain/import/`, the database side in
 PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,
 the store's address in the middle, the artist (or receipt details) on the right, the logo in the top
 corner, tables as rounded grey bars, and the horizontal logo at the foot of each page. The amounts
-are calculated as before. Receipts use `ESB_Logo_Square.png` in the corner. The logos are read from Supabase Storage, bucket **Logos & Icons**; the
+are calculated as before. Invoices and receipts both use `ESB_Logo_Square.png` in the corner; receipts are A5 in the same style. After a sale (or from Sales → Receipt), **Email receipt** opens the iPad's / Mac's share sheet with the PDF attached, to send from Mail. The store's name, address and NIF are fixed in `lib/core/app_config.dart` (`StoreDetails`). The logos are read from Supabase Storage, bucket **Logos & Icons**; the
 file names are set in `lib/core/app_config.dart` (`LogoFiles`). A missing logo is simply left out.
 
 ## Code layout

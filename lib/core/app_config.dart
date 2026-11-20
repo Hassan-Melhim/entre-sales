@@ -18,17 +18,21 @@ abstract final class AppConfig {
   );
 }
 
+/// The store, as printed at the top of invoices, receipts and reports.
+abstract final class StoreDetails {
+  static const name = 'Entre Salas';
+  static const address = 'C/ Ramón y Cajal 98,\nPB02, Barcelona, 08012';
+  static const taxId = 'B24843674';
+}
+
 /// The logos printed on PDFs, read from Supabase Storage (bucket and file
 /// names exactly as they appear there). A missing file just leaves that
 /// logo out.
 abstract final class LogoFiles {
   static const bucket = 'Logos & Icons';
 
-  /// Top corner of invoices and reports.
-  static const corner = 'ES_GoogleProfileThumbnail.png';
-
-  /// Top corner of customer receipts.
-  static const receiptCorner = 'ESB_Logo_Square.png';
+  /// Top corner of invoices, receipts and reports.
+  static const corner = 'ESB_Logo_Square.png';
 
   /// Across the bottom of each page.
   static const footer = 'ES_Logo_3d_horizontalThumbnail.png';
