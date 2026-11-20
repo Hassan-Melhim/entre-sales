@@ -110,3 +110,10 @@ class SeedDiscount {
   final double percent;
   const SeedDiscount(this.name, this.percent);
 }
+
+// ►►► The store, as printed at the top of invoices, receipts and reports.
+abstract final class StoreDetails {
+  static const name = 'Entre Salas';
+  static const address = 'C/ Ramón y Cajal 98,\nPB02, Barcelona, 08012';
+  static const taxId = 'B24843674';
+}

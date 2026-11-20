@@ -7,6 +7,9 @@
 /// To use another project without changing the code, build with
 ///   --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_PUBLISHABLE_KEY=…
 abstract final class AppConfig {
+  /// Shown in Advanced settings → About (keep in step with pubspec.yaml).
+  static const appVersion = '0.3.0';
+
   static const supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
     defaultValue: 'https://mddsniqoqhutzthbleve.supabase.co',
@@ -16,13 +19,6 @@ abstract final class AppConfig {
     'SUPABASE_PUBLISHABLE_KEY',
     defaultValue: 'sb_publishable_IzHJKaJuukexKlBXW8omVg_5XBFypuE',
   );
-}
-
-/// The store, as printed at the top of invoices, receipts and reports.
-abstract final class StoreDetails {
-  static const name = 'Entre Salas';
-  static const address = 'C/ Ramón y Cajal 98,\nPB02, Barcelona, 08012';
-  static const taxId = 'B24843674';
 }
 
 /// The logos printed on PDFs, read from Supabase Storage (bucket and file

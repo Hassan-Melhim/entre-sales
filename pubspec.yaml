@@ -1,7 +1,7 @@
 name: entre_sales
 description: Inventory, POS, artist invoicing and reporting for Entre Salas concept store (website).
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: '>=3.6.0 <4.0.0'

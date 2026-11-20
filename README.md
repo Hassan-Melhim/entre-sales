@@ -73,9 +73,9 @@ VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, ca
   a timeline (by hour, day, week or month depending on the length), sales by category / artist / gender,
   best hours and weekdays, best sellers, turnover, days-to-sell and items longest on display.
   Export as PDF or CSV.
-- **Settings** – this device (light / dark mode, shift length: signed out 5 hours after signing in,
-  but never mid-use), store details for PDFs,
-  categories and their fields, discounts, backup download.
+- **Settings** – you (sign out), this device (light / dark mode, shift length), discounts, backup
+  download (with when this device last made one). **Advanced settings**: categories & VAT, import data,
+  logos for PDFs, store details & business rules, about.
 
 Every date filter accepts the same day as start and end (that whole day).
 
@@ -157,7 +157,7 @@ change stock. The checks are in `lib/domain/import/`, the database side in
 PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,
 the store's address in the middle, the artist (or receipt details) on the right, the logo in the top
 corner, tables as rounded grey bars, and the horizontal logo at the foot of each page. The amounts
-are calculated as before. Invoices and receipts both use `ESB_Logo_Square.png` in the corner; receipts are A5 in the same style. After a sale (or from Sales → Receipt), **Email receipt** opens the iPad's / Mac's share sheet with the PDF attached, to send from Mail. The store's name, address and NIF are fixed in `lib/core/app_config.dart` (`StoreDetails`). The logos are read from Supabase Storage, bucket **Logos & Icons**; the
+are calculated as before. Invoices and receipts both use `ESB_Logo_Square.png` in the corner; receipts are A5 in the same style. After a sale (or from Sales → Receipt), **Email receipt** opens the iPad's / Mac's share sheet with the PDF attached, to send from Mail. The store's name, address and NIF are fixed in `lib/domain/business_rules.dart` (`StoreDetails`). The logos are read from Supabase Storage, bucket **Logos & Icons**; the
 file names are set in `lib/core/app_config.dart` (`LogoFiles`). A missing logo is simply left out.
 
 ## Code layout

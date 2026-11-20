@@ -16,7 +16,7 @@ import '../data/supabase/repositories/supabase_report_repository.dart';
 import '../data/supabase/repositories/supabase_sales_repository.dart';
 import '../data/supabase/repositories/supabase_session_repository.dart';
 import '../data/supabase/repositories/supabase_settings_repository.dart';
-import '../core/app_config.dart';
+import '../domain/business_rules.dart';
 import '../domain/models/app_user.dart';
 import '../domain/models/artist.dart';
 import '../domain/models/artist_statement.dart';
@@ -87,6 +87,12 @@ final backupRepositoryProvider =
 final reportServiceProvider = Provider((ref) => ReportService(ref.watch(reportRepositoryProvider)));
 
 // ================================================================ Signing in
+
+/// Signs out and ends the shift on this device.
+Future<void> signOutThisDevice(WidgetRef ref) async {
+  await ref.read(deviceSettingsProvider).set(DeviceSettingKeys.signedInAt, null);
+  await ref.read(authRepositoryProvider).signOut();
+}
 
 /// The signed-in owner, or null. Updates on sign-in, sign-out and expiry.
 final currentUserProvider = StreamProvider<AppUser?>((ref) async* {

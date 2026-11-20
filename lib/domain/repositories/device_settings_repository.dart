@@ -18,4 +18,7 @@ class DeviceSettingKeys {
 
   /// When this device signed in (ISO 8601), to know when the shift ends.
   static const signedInAt = 'signed_in_at';
+
+  /// When a backup was last downloaded on this device (ISO 8601).
+  static const lastBackupAt = 'last_backup_at';
 }

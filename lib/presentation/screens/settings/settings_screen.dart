@@ -3,26 +3,26 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/app_config.dart';
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
 import '../../../data/export/export_file.dart';
 import '../../../domain/business_rules.dart';
-import '../../../domain/models/category_attribute.dart';
 import '../../../domain/models/discount.dart';
-import '../../../domain/models/product_category.dart';
+import '../../../domain/repositories/device_settings_repository.dart';
 import '../../providers.dart';
+import '../../staff_accounts.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/file_delivery.dart';
-import '../../widgets/info_row.dart';
 import '../../widgets/page_header.dart';
-import '../../widgets/responsive_fields.dart';
-import 'import_screen.dart';
+import '../../widgets/staff_avatar.dart';
+import 'advanced_settings_screen.dart';
+import 'settings_section.dart';
 
+/// Everyday settings. Rarely used ones are under [AdvancedSettingsScreen].
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -39,13 +39,11 @@ class SettingsScreen extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _YouSection(),
                 _AppearanceSection(),
-                _StoreSection(),
-                _CategoriesSection(),
                 _DiscountsSection(),
-                _RulesSection(),
-                _ImportSection(),
                 _BackupSection(),
+                _AdvancedLink(),
               ],
             ),
           ),
@@ -55,48 +53,41 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class _Section extends StatelessWidget {
-  final String title;
-  final String? subtitle;
-  final List<Widget> children;
-  final Widget? action;
-  const _Section({required this.title, this.subtitle, required this.children, this.action});
+// --------------------------------------------------------------------- You
+
+class _YouSection extends ConsumerWidget {
+  const _YouSection();
 
   @override
-  Widget build(BuildContext context) {
-    final pad = context.pagePadding;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(pad, AppSpacing.s, pad, AppSpacing.l),
-      child: Card(
-        child: Padding(
-          padding: EdgeInsets.all(context.isCompact ? AppSpacing.m : AppSpacing.l),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // The action button drops under the title when space is short.
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: AppSpacing.m,
-                runSpacing: AppSpacing.s,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final email = ref.watch(currentUserProvider).valueOrNull?.email ?? '';
+    final staff = staffFor(email);
+    return SettingsSection(
+      title: 'You',
+      children: [
+        Row(
+          children: [
+            StaffAvatar(staff,
+                colorIndex: staff == null ? 0 : staffAccounts.indexOf(staff), size: AppSizes.avatarMedium),
+            const SizedBox(width: AppSpacing.m),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: Theme.of(context).textTheme.titleMedium),
-                      if (subtitle != null)
-                        Text(subtitle!, style: TextStyle(color: Theme.of(context).colorScheme.outline)),
-                    ],
-                  ),
-                  if (action != null) action!,
+                  Text(staff?.name ?? email, style: Theme.of(context).textTheme.titleMedium),
+                  if (staff != null)
+                    Text(email, style: TextStyle(color: Theme.of(context).colorScheme.outline)),
                 ],
               ),
-              const SizedBox(height: AppSpacing.m),
-              ...children,
-            ],
-          ),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => signOutThisDevice(ref),
+              icon: const Icon(Icons.logout),
+              label: const Text('Sign out'),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 }
@@ -112,7 +103,7 @@ class _AppearanceSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final mode = ref.watch(themeModeProvider);
     final shift = ref.watch(shiftHoursProvider);
-    return _Section(
+    return SettingsSection(
       title: 'This device',
       subtitle: 'Saved in this browser only, so the iPad and each laptop can differ',
       children: [
@@ -154,287 +145,6 @@ class _AppearanceSection extends ConsumerWidget {
   }
 }
 
-// ------------------------------------------------------------------- Store
-
-class _StoreSection extends StatelessWidget {
-  const _StoreSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = TextStyle(color: Theme.of(context).colorScheme.outline);
-    return _Section(
-      title: 'Store details',
-      subtitle: 'Printed at the top of invoices, receipts and reports',
-      children: [
-        Text(StoreDetails.name, style: Theme.of(context).textTheme.titleSmall),
-        Text(StoreDetails.address),
-        Text('NIF ${StoreDetails.taxId}'),
-        const SizedBox(height: AppSpacing.xs),
-        Text('To change these, edit lib/core/app_config.dart.', style: muted),
-        const SizedBox(height: AppSpacing.m),
-        const _LogoStatus(),
-      ],
-    );
-  }
-}
-
-/// Whether the PDF logos could be read from Supabase Storage, and why not.
-class _LogoStatus extends ConsumerWidget {
-  const _LogoStatus();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final logos = ref.watch(storeLogosProvider);
-    final theme = Theme.of(context);
-    final reload = TextButton.icon(
-      onPressed: () => ref.invalidate(storeLogosProvider),
-      icon: const Icon(Icons.refresh),
-      label: const Text('Reload logos'),
-    );
-    return logos.when(
-      loading: () => const Row(children: [
-        SizedBox.square(dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2)),
-        SizedBox(width: AppSpacing.s),
-        Text('Loading the logos…'),
-      ]),
-      error: (e, _) => Row(children: [Expanded(child: Text('Logos: $e')), reload]),
-      data: (l) {
-        if (l.problems.isEmpty) {
-          return Row(children: [
-            Icon(Icons.check_circle, color: context.appColors.success, size: AppSizes.iconSmall),
-            const SizedBox(width: AppSpacing.s),
-            const Expanded(child: Text('Logos for PDFs: all 3 found.')),
-            reload,
-          ]);
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Logos for PDFs: ${3 - l.problems.length} of 3 found.',
-                style: TextStyle(color: theme.colorScheme.error)),
-            for (final p in l.problems) SelectableText('• $p', style: theme.textTheme.bodySmall),
-            reload,
-          ],
-        );
-      },
-    );
-  }
-}
-
-// -------------------------------------------------------------- Categories
-
-class _CategoriesSection extends ConsumerWidget {
-  const _CategoriesSection();
-
-  String _describe(ProductCategory c) {
-    final fields = c.attributes.isEmpty
-        ? 'no extra fields'
-        : c.attributes
-            .map((a) => a.isFreeText ? '${a.name} (free text)' : '${a.name}: ${a.options.join(', ')}')
-            .join(' · ');
-    return 'Tax ${formatPercent(c.taxPercent)} · $fields';
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cats = ref.watch(categoriesProvider);
-    return _Section(
-      title: 'Categories',
-      subtitle: 'Tax rate and the extra fields asked when logging a product',
-      action: FilledButton.icon(
-        onPressed: () => _edit(context, null),
-        icon: const Icon(Icons.add),
-        label: const Text('New category'),
-      ),
-      children: [
-        AsyncView(
-          value: cats,
-          builder: (list) => Column(
-            children: [
-              for (final c in list)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(c.name),
-                  subtitle: Text(_describe(c)),
-                  trailing: const Icon(Icons.edit_outlined),
-                  onTap: () => _edit(context, c),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _edit(BuildContext context, ProductCategory? c) =>
-      showDialog<void>(context: context, builder: (_) => _CategoryDialog(category: c));
-}
-
-class _AttrRow {
-  final TextEditingController name;
-  final TextEditingController options;
-  _AttrRow(String n, String o)
-      : name = TextEditingController(text: n),
-        options = TextEditingController(text: o);
-
-  void dispose() {
-    name.dispose();
-    options.dispose();
-  }
-}
-
-class _CategoryDialog extends ConsumerStatefulWidget {
-  final ProductCategory? category;
-  const _CategoryDialog({this.category});
-  @override
-  ConsumerState<_CategoryDialog> createState() => _CategoryDialogState();
-}
-
-class _CategoryDialogState extends ConsumerState<_CategoryDialog> {
-  late final _name = TextEditingController(text: widget.category?.name);
-  late final _tax = TextEditingController(text: widget.category?.taxPercent.toString() ?? '21');
-  late final List<_AttrRow> _attrs = [
-    for (final a in widget.category?.attributes ?? const <CategoryAttribute>[]) _AttrRow(a.name, a.options.join(', ')),
-  ];
-
-  @override
-  void dispose() {
-    _name.dispose();
-    _tax.dispose();
-    for (final a in _attrs) {
-      a.dispose();
-    }
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final tax = parsePercent(_tax.text);
-    if (_name.text.trim().isEmpty || tax == null) {
-      showMessage(context, 'Enter a name and a tax rate from 0 to 100', error: true);
-      return;
-    }
-    final attrs = [
-      for (final a in _attrs)
-        if (a.name.text.trim().isNotEmpty)
-          CategoryAttribute(
-            name: a.name.text.trim(),
-            options: a.options.text.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList(),
-          ),
-    ];
-    try {
-      await ref.read(categoryRepositoryProvider).save(
-          ProductCategory(id: widget.category?.id, name: _name.text.trim(), taxPercent: tax, attributes: attrs));
-    } catch (e) {
-      if (mounted) showMessage(context, 'Could not save (is the name already used?)', error: true);
-      return;
-    }
-    refreshData(ref);
-    if (mounted) Navigator.pop(context);
-  }
-
-  Future<void> _delete() async {
-    final repo = ref.read(categoryRepositoryProvider);
-    if (!await repo.canDelete(widget.category!.id!)) {
-      if (mounted) showMessage(context, 'This category has products and cannot be deleted.', error: true);
-      return;
-    }
-    await repo.delete(widget.category!.id!);
-    refreshData(ref);
-    if (mounted) Navigator.pop(context);
-  }
-
-  /// Side by side on wide screens, stacked on phones. (No LayoutBuilder
-  /// here: dialog content must report its size up front.)
-  Widget _pair(Widget a, Widget b, {int flexA = 1, int flexB = 1}) => context.isCompact
-      ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [a, const SizedBox(height: AppSpacing.s), b])
-      : Row(children: [
-          Expanded(flex: flexA, child: a),
-          const SizedBox(width: AppSpacing.m),
-          Expanded(flex: flexB, child: b),
-        ]);
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.category == null ? 'New category' : 'Edit category'),
-      content: SizedBox(
-        width: context.dialogWidth(AppSizes.dialogLarge),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _pair(
-                TextField(controller: _name, decoration: const InputDecoration(labelText: 'Name')),
-                TextField(
-                  controller: _tax,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Tax (IVA)', suffixText: '%'),
-                ),
-                flexA: 2,
-              ),
-              const SizedBox(height: AppSpacing.l),
-              Text('Fields', style: Theme.of(context).textTheme.titleSmall),
-              Text('Leave options empty to type values freely, or list fixed options separated by commas.',
-                  style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: AppSpacing.s),
-              for (var i = 0; i < _attrs.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.m),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: _pair(
-                          TextField(
-                              controller: _attrs[i].name,
-                              decoration: const InputDecoration(labelText: 'Field (e.g. Size)')),
-                          TextField(
-                            controller: _attrs[i].options,
-                            decoration: const InputDecoration(labelText: 'Options (optional)', hintText: 'S, M, L'),
-                          ),
-                          flexB: 2,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Remove field',
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          final removed = _attrs.removeAt(i);
-                          setState(() {});
-                          // Dispose once its text fields have left the screen.
-                          WidgetsBinding.instance.addPostFrameCallback((_) => removed.dispose());
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () => setState(() => _attrs.add(_AttrRow('', ''))),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add field'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        if (widget.category != null)
-          TextButton(
-            onPressed: _delete,
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Delete'),
-          ),
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        FilledButton(onPressed: _save, child: const Text('Save')),
-      ],
-    );
-  }
-}
-
 // --------------------------------------------------------------- Discounts
 
 class _DiscountsSection extends ConsumerWidget {
@@ -443,7 +153,7 @@ class _DiscountsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final discounts = ref.watch(discountsProvider);
-    return _Section(
+    return SettingsSection(
       title: 'Discounts',
       subtitle: 'Shown as checkboxes before completing a sale. '
           '${BusinessRules.discountReducesArtistPayout ? 'Discounts reduce the artist payout.' : 'The store absorbs discounts.'}',
@@ -520,75 +230,6 @@ class _DiscountsSection extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------- Business rules
-
-class _RulesSection extends StatelessWidget {
-  const _RulesSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _Section(
-      title: 'Business rules',
-      subtitle: 'Changed in the code: lib/domain/business_rules.dart (and the matching rules in supabase/migrations)',
-      children: [
-        _RuleRows(),
-      ],
-    );
-  }
-}
-
-class _RuleRows extends StatelessWidget {
-  const _RuleRows();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        InfoRow('Default store commission', formatPercent(BusinessRules.defaultCommissionPercent)),
-        const InfoRow('Commission priority', 'Product → artist → store default'),
-        InfoRow(
-          'Tax for Spain-resident artists',
-          '${formatPercent(BusinessRules.spainResidentArtistTaxPercent)} '
-              '${BusinessRules.residentTaxAddedOnTop ? 'added on top of' : 'withheld from'} payout',
-        ),
-        const InfoRow('Discounts',
-            BusinessRules.discountReducesArtistPayout ? 'Reduce the artist payout' : 'Absorbed by the store'),
-        InfoRow(
-          'Store profit',
-          'Customer paid (incl. VAT) − artist payout'
-              '${BusinessRules.profitSubtractsArtistResidentTax && BusinessRules.residentTaxAddedOnTop ? ' − resident tax added' : ''}',
-        ),
-        const InfoRow('Payout periods', 'Calendar month, or any date range'),
-      ],
-    );
-  }
-}
-
-// ------------------------------------------------------------------ Import
-
-class _ImportSection extends StatelessWidget {
-  const _ImportSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return _Section(
-      title: 'Import data',
-      subtitle: 'Bring in artists, products with stock, and past sales from the old system, '
-          'using the import template saved as CSV files. Everything is checked before anything is added.',
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
-            icon: const Icon(Icons.upload_file_outlined),
-            label: const Text('Import data'),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 // ------------------------------------------------------------------ Backup
 
 /// Supabase keeps the data; this is an extra copy the owners control
@@ -608,6 +249,8 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
       final bytes = await ref.read(backupRepositoryProvider).exportBackup();
       await deliverExport(ExportFile(
           'entre_sales_backup_${fileStamp(DateTime.now())}.json', Uint8List.fromList(bytes), ExportFile.json));
+      await ref.read(deviceSettingsProvider).set(DeviceSettingKeys.lastBackupAt, DateTime.now().toIso8601String());
+      if (mounted) setState(() {});
     } catch (e) {
       if (mounted) showMessage(context, 'Could not make the backup: $e', error: true);
     } finally {
@@ -617,11 +260,19 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
 
   @override
   Widget build(BuildContext context) {
-    return _Section(
+    final last = DateTime.tryParse(ref.read(deviceSettingsProvider).get(DeviceSettingKeys.lastBackupAt) ?? '');
+    final overdue = last == null || DateTime.now().difference(last).inDays >= 7;
+    final theme = Theme.of(context);
+    return SettingsSection(
       title: 'Backup',
       subtitle: 'Downloads all the store\'s data (artists, products, sales, refunds, history of changes) '
-          'as one file. Keep a copy somewhere safe, e.g. once a week.',
+          'as one file. Keep a copy somewhere safe, once a week.',
       children: [
+        Text(
+          last == null ? 'Never downloaded on this device.' : 'Last downloaded on this device: ${formatDateTime(last)}.',
+          style: TextStyle(color: overdue ? context.appColors.warning : theme.colorScheme.outline),
+        ),
+        const SizedBox(height: AppSpacing.s),
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
@@ -633,6 +284,30 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------- Advanced
+
+class _AdvancedLink extends StatelessWidget {
+  const _AdvancedLink();
+
+  @override
+  Widget build(BuildContext context) {
+    final pad = context.pagePadding;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(pad, AppSpacing.s, pad, AppSpacing.l),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          leading: const Icon(Icons.tune),
+          title: const Text('Advanced settings'),
+          subtitle: const Text('Categories & VAT, import data, logos, store & business rules, about'),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdvancedSettingsScreen())),
+        ),
+      ),
     );
   }
 }
