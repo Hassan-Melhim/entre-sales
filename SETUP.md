@@ -166,7 +166,10 @@ entered while testing:
 That empties artists, products, sales, sessions and the change history. Categories, discounts,
 store details and logins are kept, and sale numbers start again from 1.
 
-3. Bring in the real data: **Settings → Import data**.
+3. If the store uses its own categories (Clothes, Libros & Prints, Goodies…), run
+   `supabase/scripts/use_store_categories.sql` the same way. It replaces the starting categories,
+   and only works once step 2 has removed the demo products.
+4. Bring in the real data: **Settings → Advanced settings → Import data**.
    - Fill in the import template (there's a **Download the template** link on that screen).
    - In Excel, save each tab as its own CSV: open the tab → **File → Save As → CSV UTF-8**.
      The Spanish Excel's semicolons and decimal commas are fine.
