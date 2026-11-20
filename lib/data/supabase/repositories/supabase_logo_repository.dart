@@ -18,9 +18,10 @@ class SupabaseLogoRepository implements LogoRepository {
   @override
   Future<StoreLogos> logos() async {
     final problems = <String>[];
-    final files = await Future.wait(
-        [LogoFiles.corner, LogoFiles.footer, LogoFiles.kisses].map((path) => _load(path, problems)));
-    return StoreLogos(corner: files[0], footer: files[1], kisses: files[2], problems: problems);
+    final files = await Future.wait([LogoFiles.corner, LogoFiles.receiptCorner, LogoFiles.footer, LogoFiles.kisses]
+        .map((path) => _load(path, problems)));
+    return StoreLogos(
+        corner: files[0], receiptCorner: files[1], footer: files[2], kisses: files[3], problems: problems);
   }
 
   Future<LogoImage?> _load(String path, List<String> problems) async {

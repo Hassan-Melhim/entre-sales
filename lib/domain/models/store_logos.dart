@@ -10,12 +10,13 @@ class LogoImage {
 /// The logos printed on invoices and receipts. Any of them may be missing.
 class StoreLogos {
   final LogoImage? corner;
+  final LogoImage? receiptCorner;
   final LogoImage? footer;
   final LogoImage? kisses;
 
   /// Why a logo couldn't be loaded, one line per file (empty when all are fine).
   final List<String> problems;
 
-  const StoreLogos({this.corner, this.footer, this.kisses, this.problems = const []});
+  const StoreLogos({this.corner, this.receiptCorner, this.footer, this.kisses, this.problems = const []});
   const StoreLogos.none() : this();
 }

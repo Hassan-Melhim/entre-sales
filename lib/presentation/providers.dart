@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,9 +26,11 @@ import '../domain/models/order_filter.dart';
 import '../domain/models/product.dart';
 import '../domain/models/product_category.dart';
 import '../domain/models/product_filter.dart';
+import '../domain/models/refunded_item.dart';
 import '../domain/models/report_period.dart';
 import '../domain/models/sale_order.dart';
 import '../domain/models/sales_report.dart';
+import '../domain/models/sold_item.dart';
 import '../domain/models/store_info.dart';
 import '../domain/models/store_logos.dart';
 import '../domain/repositories/artist_repository.dart';
@@ -199,6 +203,17 @@ final salesReportProvider = FutureProvider.family<SalesReport, ReportPeriod>((re
 });
 
 /// Artist settlements for a period (only artists with activity).
+/// Everything one artist has sold, and their refunds, since the beginning.
+final artistSalesProvider =
+    FutureProvider.family<({List<SoldItem> sold, List<RefundedItem> refunded}), int>((ref, artistId) async {
+  ref.watch(dataRevisionProvider);
+  final repo = ref.watch(reportRepositoryProvider);
+  final allTime = DateRange(DateTime(2000), DateTime(2100));
+  final (sold, refunded) =
+      await (repo.soldItems(allTime, artistId: artistId), repo.refundedItems(allTime, artistId: artistId)).wait;
+  return (sold: sold, refunded: refunded);
+});
+
 final statementsProvider = FutureProvider.family<List<ArtistStatement>, DateRange>((ref, range) async {
   ref.watch(dataRevisionProvider);
   final artists = await ref.watch(artistsProvider.future);

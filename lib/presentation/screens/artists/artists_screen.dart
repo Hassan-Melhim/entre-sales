@@ -14,6 +14,7 @@ import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/search_field.dart';
+import 'artist_detail_screen.dart';
 
 class ArtistsScreen extends ConsumerStatefulWidget {
   const ArtistsScreen({super.key});
@@ -75,7 +76,7 @@ class _ArtistTile extends ConsumerWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(a.name),
       subtitle: Text([if (a.gender != null) a.gender!, a.isSpainResident ? 'Spain resident' : 'Non-resident'].join(' · ')),
-      onTap: () => showArtistForm(context, artist: a),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ArtistDetailScreen(artistId: a.id!))),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

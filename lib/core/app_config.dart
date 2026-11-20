@@ -24,8 +24,11 @@ abstract final class AppConfig {
 abstract final class LogoFiles {
   static const bucket = 'Logos & Icons';
 
-  /// Top corner of every invoice and receipt.
+  /// Top corner of invoices and reports.
   static const corner = 'ES_GoogleProfileThumbnail.png';
+
+  /// Top corner of customer receipts.
+  static const receiptCorner = 'ESB_Logo_Square.png';
 
   /// Across the bottom of each page.
   static const footer = 'ES_Logo_3d_horizontalThumbnail.png';

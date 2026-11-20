@@ -247,14 +247,14 @@ class _LogoStatus extends ConsumerWidget {
           return Row(children: [
             Icon(Icons.check_circle, color: context.appColors.success, size: AppSizes.iconSmall),
             const SizedBox(width: AppSpacing.s),
-            const Expanded(child: Text('Logos for PDFs: all 3 found.')),
+            const Expanded(child: Text('Logos for PDFs: all 4 found.')),
             reload,
           ]);
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Logos for PDFs: ${3 - l.problems.length} of 3 found.',
+            Text('Logos for PDFs: ${4 - l.problems.length} of 4 found.',
                 style: TextStyle(color: theme.colorScheme.error)),
             for (final p in l.problems) SelectableText('• $p', style: theme.textTheme.bodySmall),
             reload,

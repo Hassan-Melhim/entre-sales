@@ -243,7 +243,7 @@ class PdfService {
 
   static Future<ExportFile> receipt(SaleOrder o, StoreInfo store) async {
     final doc = pw.Document(theme: await _loadTheme());
-    final corner = _logo(store.logos.corner, 38);
+    final corner = _logo(store.logos.receiptCorner, 38);
     final kisses = _logo(store.logos.kisses, 18);
     final footerLogo = _logo(store.logos.footer, 26);
     doc.addPage(pw.Page(

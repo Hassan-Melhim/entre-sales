@@ -33,6 +33,13 @@ class AppSizes {
   static const double dialogLarge = 640;
   static const double dialogMin = 240;
 
+  // Sign-in
+  static const double loginMax = 600; // the row of staff tiles
+  static const double staffTileWidth = 150;
+  static const double avatarLarge = 72; // staff tiles
+  static const double avatarMedium = 56; // password dialog
+  static const double avatarSmall = 32; // menu
+
   /// Max width of forms and settings so lines stay readable on big screens.
   static const double contentMax = 1100;
 

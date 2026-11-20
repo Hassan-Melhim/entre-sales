@@ -67,7 +67,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 padding: EdgeInsets.fromLTRB(pad, 0, pad, AppSpacing.xl),
                 itemCount: list.length,
                 separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s),
-                itemBuilder: (context, i) => _ProductCard(product: list[i]),
+                itemBuilder: (context, i) => ProductCard(product: list[i]),
               );
             },
           ),
@@ -77,9 +77,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 }
 
-class _ProductCard extends ConsumerWidget {
+/// A product with its stock, price and commission; expands to show its
+/// variants (restock, per-variant stock). Used in Inventory and on an artist.
+class ProductCard extends ConsumerWidget {
   final Product product;
-  const _ProductCard({required this.product});
+  const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

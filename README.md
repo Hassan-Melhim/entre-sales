@@ -5,7 +5,9 @@ Inventory, point of sale, artist payouts and sales reports for the Entre Salas c
 A **website** used from the store's iPad and the owners' MacBooks. The data lives in **Supabase**
 (one shared database, so every device sees the same stock and sales) and the site is hosted on **Vercel**.
 Four people sign in, each with their own email and password: the three owners and the developer.
-All four have the same rights.
+All four have the same rights. The login screen shows the owners as tiles (Sofia, Norhan, Jerome);
+tapping one asks only for the password. "Another account" signs in with email and password. The
+names, icons and emails are in `lib/presentation/staff_accounts.dart`.
 
 The layout adapts to phones, tablets (portrait or landscape) and computer windows, in light or dark mode.
 
@@ -60,7 +62,7 @@ VAT changes rarely, so it sits in **Settings → Categories** (21%, books 4%, ca
   that is not in stock cannot be sold. Sales during a workshop session are tagged automatically.
 - **Inventory** – every product with its variants grouped together. Out-of-stock products sit at the
   bottom with a warning. Restocking overwrites the date of arrival.
-- **Artists** – contact and billing details (legal name, NIF, IBAN, bank), gender, residency, commission.
+- **Artists** – tap an artist for their details, with tabs listing their **products** and **all their sales** (and refunds). Contact and billing details (legal name, NIF, IBAN, bank), gender, residency, commission.
 - **Sales** – history by date range, receipt PDFs, refunds (items go straight back into stock),
   and manual tagging of sales with a workshop session.
 - **Invoices** – artist payouts for a **calendar month** (with previous / next) or **any date range**.
@@ -155,7 +157,7 @@ change stock. The checks are in `lib/domain/import/`, the database side in
 PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,
 the store's address in the middle, the artist (or receipt details) on the right, the logo in the top
 corner, tables as rounded grey bars, and the horizontal logo at the foot of each page. The amounts
-are calculated as before. The logos are read from Supabase Storage, bucket **Logos & Icons**; the
+are calculated as before. Receipts use `ESB_Logo_Square.png` in the corner. The logos are read from Supabase Storage, bucket **Logos & Icons**; the
 file names are set in `lib/core/app_config.dart` (`LogoFiles`). A missing logo is simply left out.
 
 ## Code layout

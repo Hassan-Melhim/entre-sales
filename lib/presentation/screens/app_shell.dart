@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/device_settings_repository.dart';
 import '../providers.dart';
+import '../staff_accounts.dart';
 
 import '../theme/app_tokens.dart';
 import '../theme/breakpoints.dart';
+import '../widgets/staff_avatar.dart';
 import 'artists/artists_screen.dart';
 import 'inventory/inventory_screen.dart';
 import 'invoices/invoices_screen.dart';
@@ -58,11 +60,23 @@ class _AppShellState extends ConsumerState<AppShell> {
     await ref.read(authRepositoryProvider).signOut();
   }
 
-  /// Who is signed in, with a sign-out button.
+  /// Who is signed in (name and icon for staff, else the email), with a
+  /// sign-out button.
   Widget _account(BuildContext context, {required bool compact}) {
     final email = ref.watch(currentUserProvider).valueOrNull?.email ?? '';
+    final staff = staffFor(email);
+    final who = staff?.name ?? email;
+    final index = staff == null ? 0 : staffAccounts.indexOf(staff);
     if (compact) {
-      return IconButton(tooltip: 'Sign out ($email)', icon: const Icon(Icons.logout), onPressed: _signOut);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.s),
+        child: Column(
+          children: [
+            Tooltip(message: who, child: StaffAvatar(staff, colorIndex: index, size: AppSizes.avatarSmall)),
+            IconButton(tooltip: 'Sign out', icon: const Icon(Icons.logout), onPressed: _signOut),
+          ],
+        ),
+      );
     }
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.m),
@@ -71,7 +85,11 @@ class _AppShellState extends ConsumerState<AppShell> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(email, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
+            Row(children: [
+              StaffAvatar(staff, colorIndex: index, size: AppSizes.avatarSmall),
+              const SizedBox(width: AppSpacing.s),
+              Expanded(child: Text(who, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleSmall)),
+            ]),
             TextButton.icon(onPressed: _signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
           ],
         ),
