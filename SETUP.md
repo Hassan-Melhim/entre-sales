@@ -58,6 +58,8 @@ once each** (if you ran the first three earlier, just run the newer ones):
 3. `20261028120200_functions.sql`
 4. `20261106120000_import_and_logos.sql`: importing from the old system, and letting the PDFs read
    the logos in Storage. It may show the *destructive operation* warning (confirm).
+5. `20261121120000_product_photos.sql`: product photos. It creates the **product-photos** Storage
+   bucket (public to view; only signed-in staff can add, change or remove photos).
 
 For each one:
 

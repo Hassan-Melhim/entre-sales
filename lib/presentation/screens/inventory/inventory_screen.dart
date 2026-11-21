@@ -20,6 +20,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/product_filter_bar.dart';
+import '../../widgets/product_photo.dart';
 import '../../widgets/tag.dart';
 import 'product_form_screen.dart';
 
@@ -95,6 +96,7 @@ class ProductCard extends ConsumerWidget {
       color: p.isOutOfStock ? scheme.errorContainer.withValues(alpha: 0.35) : null,
       child: ExpansionTile(
         shape: const Border(),
+        leading: ProductPhoto(product: p, canEnlarge: true),
         title: Wrap(
           spacing: AppSpacing.s,
           runSpacing: AppSpacing.xs,

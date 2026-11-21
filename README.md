@@ -152,6 +152,25 @@ artists and products are added in one step and past sales in batches, as history
 change stock. The checks are in `lib/domain/import/`, the database side in
 `supabase/migrations/20261106120000_import_and_logos.sql`.
 
+## Product photos
+
+Each product can have one photo, shown in the Sell grid, Inventory and the artist's Products tab;
+products without one show their category's icon (`lib/presentation/widgets/category_icon.dart`).
+Photos are shrunk in the browser before upload (upright, JPEG, 1200 px plus a 400 px thumbnail,
+camera details left out) and kept in the public Storage bucket **product-photos**
+(`supabase/migrations/20261121120000_product_photos.sql`).
+
+- **One product:** in its form, *Choose photo* opens the file chooser (on the iPad: Photos, Files or
+  Google Drive). The photo is uploaded on Save; *Remove photo* takes it off.
+- **Many at once:** **Advanced settings → Product photos → Import photos**, on a Mac or PC (the iPad
+  can't choose folders). Choose the folder holding the category folders (the unzipped Google Drive
+  download, or the Drive folder in Google Drive for desktop). Folders named
+  `Product name - Artist name` are matched to products (capitals, accents and dash style ignored; the
+  other order works too), and the first image by name (IMG_2 before IMG_10) is used. The screen lists
+  what will be added, folders that match nothing, and products still without a folder, before
+  anything is uploaded. Products that already have a photo are skipped unless you tick *Replace*.
+  HEIC photos open in Safari, not Chrome. The matching is in `lib/domain/photos/photo_matcher.dart`.
+
 ## Invoices and receipts
 
 PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,

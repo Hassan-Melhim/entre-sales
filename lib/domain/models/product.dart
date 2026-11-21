@@ -26,6 +26,11 @@ class Product {
   final double? commissionPercentOverride;
   final List<Variant> variants;
 
+  /// Paths of the product's photo inside the "product-photos" storage
+  /// bucket (display size and thumbnail). Null = no photo.
+  final String? photoPath;
+  final String? thumbPath;
+
   const Product({
     this.id,
     required this.name,
@@ -40,7 +45,11 @@ class Product {
     required this.artistCommissionPercent,
     this.commissionPercentOverride,
     required this.variants,
+    this.photoPath,
+    this.thumbPath,
   });
+
+  bool get hasPhoto => photoPath != null || thumbPath != null;
 
   double get taxPercent => taxPercentOverride ?? categoryTaxPercent;
 

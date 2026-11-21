@@ -14,6 +14,7 @@ import '../../widgets/async_view.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/info_row.dart';
 import 'import_screen.dart';
+import 'photo_import_screen.dart';
 import 'settings_section.dart';
 
 /// Settings used rarely or only when setting things up.
@@ -35,6 +36,7 @@ class AdvancedSettingsScreen extends StatelessWidget {
                 children: [
                   _CategoriesSection(),
                   _ImportSection(),
+                  _PhotosSection(),
                   _LogosSection(),
                   _RulesSection(),
                   _AboutSection(),
@@ -280,6 +282,32 @@ class _ImportSection extends StatelessWidget {
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
             icon: const Icon(Icons.upload_file_outlined),
             label: const Text('Import data'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ------------------------------------------------------------------ Photos
+
+class _PhotosSection extends StatelessWidget {
+  const _PhotosSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsSection(
+      title: 'Product photos',
+      subtitle: 'Give many products their photo at once from a folder laid out like the Google Drive '
+          '(category → "Product name - Artist name" → images). Best done on a Mac. '
+          'Single photos can be added in each product\'s form.',
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PhotoImportScreen())),
+            icon: const Icon(Icons.photo_library_outlined),
+            label: const Text('Import photos'),
           ),
         ),
       ],

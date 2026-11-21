@@ -8,7 +8,7 @@
 ///   --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_PUBLISHABLE_KEY=…
 abstract final class AppConfig {
   /// Shown in Advanced settings → About (keep in step with pubspec.yaml).
-  static const appVersion = '0.3.0';
+  static const appVersion = '0.4.0';
 
   static const supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
@@ -35,4 +35,12 @@ abstract final class LogoFiles {
 
   /// The three kisses, next to the title.
   static const kisses = 'ES_stamp_kissingThumbnail.png';
+}
+
+/// Product photos in Supabase Storage (created by migration 20261121120000).
+abstract final class PhotoStorage {
+  static const bucket = 'product-photos';
+
+  /// Each upload gets a new name, so browsers may keep photos for a year.
+  static const cacheSeconds = '31536000';
 }

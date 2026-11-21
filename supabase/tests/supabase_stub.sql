@@ -20,3 +20,7 @@ create table storage.objects (id uuid primary key default gen_random_uuid(), buc
 alter table storage.objects enable row level security;
 grant usage on schema storage to anon, authenticated;
 grant select on storage.objects to anon, authenticated;
+create table storage.buckets (id text primary key, name text, public boolean default false,
+                              file_size_limit bigint, allowed_mime_types text[]);
+grant select on storage.buckets to anon, authenticated;
+grant insert, update, delete on storage.objects to authenticated;

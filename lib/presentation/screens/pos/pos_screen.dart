@@ -17,6 +17,7 @@ import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/product_filter_bar.dart';
+import '../../widgets/product_photo.dart';
 import '../../widgets/tag.dart';
 import 'cart.dart';
 
@@ -121,8 +122,26 @@ class _ProductTile extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
-              Text(p.artistName, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: scheme.outline)),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Opacity(
+                    opacity: out ? 0.5 : 1,
+                    child: ProductPhoto(product: p, size: AppSizes.photoTile),
+                  ),
+                  const SizedBox(width: AppSpacing.s + AppSpacing.xxs),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.titleSmall),
+                        Text(p.artistName,
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: scheme.outline)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               const Spacer(),
               Row(
                 children: [
@@ -182,8 +201,21 @@ class _VariantPicker extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(product.name, style: Theme.of(context).textTheme.titleLarge),
-            Text('${product.artistName} · ${product.categoryName}', style: TextStyle(color: scheme.outline)),
+            Row(
+              children: [
+                ProductPhoto(product: product, size: AppSizes.photoTile * 1.5, large: true, canEnlarge: true),
+                const SizedBox(width: AppSpacing.l),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(product.name, style: Theme.of(context).textTheme.titleLarge),
+                      Text('${product.artistName} · ${product.categoryName}', style: TextStyle(color: scheme.outline)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSpacing.l),
             Wrap(
               spacing: AppSpacing.s + AppSpacing.xxs,

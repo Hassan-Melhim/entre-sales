@@ -51,8 +51,14 @@ class AppSizes {
   static const double cartPanelWide = 420;
   static const double productTileCompact = 200;
   static const double productTile = 240;
-  static const double productTileHeight = 124;
+  static const double productTileHeight = 132;
   static const double checkoutButtonHeight = 52;
+
+  // Product photos
+  static const double photoList = 56; // inventory and artist lists
+  static const double photoTile = 64; // the Sell grid
+  static const double photoForm = 160; // the product form
+  static const double photoDialog = 480; // tapping a photo
 
   // Reports
   static const double chartHeight = 200;

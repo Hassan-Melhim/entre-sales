@@ -1,4 +1,4 @@
-"""Runs the three migrations on a throw-away local PostgreSQL database and
+"""Runs the migrations on a throw-away local PostgreSQL database and
 checks sales, refunds, stock, security and the money formulas.
 
     python supabase/tests/test_migrations.py   (needs a local PostgreSQL + psycopg)
@@ -278,6 +278,34 @@ def main():
         check(False, 'signed-out cannot import')
     except psycopg.Error:
         check(True, 'signed-out cannot import')
+
+    # ---- product photos (migration 5)
+    check(one(c, "select public from storage.buckets where id='product-photos'")[0] is True, 'photo bucket is public')
+    pid = one(c, 'select id from products order by id limit 1')[0]
+    c.execute("update products set photo_path='p/1.jpg', thumb_path='p/1_t.jpg' where id=%s", (pid,))
+    r = one(c, 'select photo_path, thumb_path, variants is not null from product_rows where id=%s', (pid,))
+    check(r == ('p/1.jpg', 'p/1_t.jpg', True), f'product list shows the photo {r}')
+    r = one(c, 'select photo_path from search_products(%s) where id=%s', ('', pid))
+    check(r is not None and r[0] == 'p/1.jpg', 'search returns the photo too')
+    c.execute("insert into storage.objects (bucket_id, name) values ('product-photos', 'p/1.jpg')")
+    check(one(c, "select count(*) from storage.objects where bucket_id='product-photos'")[0] == 1, 'staff can upload a photo')
+    c.execute("delete from storage.objects where bucket_id='product-photos'")
+    check(one(c, "select count(*) from storage.objects where bucket_id='product-photos'")[0] == 0, 'staff can remove a photo')
+    try:
+        c.execute("insert into storage.objects (bucket_id, name) values ('Logos & Icons', 'x.png')")
+        check(False, 'photo rules do not open the logo bucket')
+    except psycopg.Error:
+        check(True, 'photo rules do not open the logo bucket')
+    try:
+        anon.execute("insert into storage.objects (bucket_id, name) values ('product-photos', 'x.jpg')")
+        check(False, 'signed-out cannot upload photos')
+    except psycopg.Error:
+        check(True, 'signed-out cannot upload photos')
+    try:
+        anon.execute("update products set photo_path='x' where id=%s", (pid,))
+        check(one(c, 'select photo_path from products where id=%s', (pid,))[0] == 'p/1.jpg', 'signed-out cannot change photos')
+    except psycopg.Error:
+        check(True, 'signed-out cannot change photos')
 
     print()
     print('FAILURES:', failures)

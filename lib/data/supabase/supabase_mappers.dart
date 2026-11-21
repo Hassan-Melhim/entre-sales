@@ -94,6 +94,8 @@ class SupabaseMappers {
         artistCommissionPercent: asDoubleOrNull(m['artist_commission']) ?? BusinessRules.defaultCommissionPercent,
         commissionPercentOverride: asDoubleOrNull(m['commission_percent_override']),
         variants: asRows(m['variants']).map(variant).toList(),
+        photoPath: m['photo_path'] as String?,
+        thumbPath: m['thumb_path'] as String?,
       );
 
   // --------------------------------------------------------------- discounts

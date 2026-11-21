@@ -11,6 +11,7 @@ import '../data/supabase/repositories/supabase_category_repository.dart';
 import '../data/supabase/repositories/supabase_discount_repository.dart';
 import '../data/supabase/repositories/supabase_import_repository.dart';
 import '../data/supabase/repositories/supabase_logo_repository.dart';
+import '../data/supabase/repositories/supabase_product_photo_repository.dart';
 import '../data/supabase/repositories/supabase_product_repository.dart';
 import '../data/supabase/repositories/supabase_report_repository.dart';
 import '../data/supabase/repositories/supabase_sales_repository.dart';
@@ -42,6 +43,7 @@ import '../domain/repositories/device_settings_repository.dart';
 import '../domain/repositories/discount_repository.dart';
 import '../domain/repositories/import_repository.dart';
 import '../domain/repositories/logo_repository.dart';
+import '../domain/repositories/product_photo_repository.dart';
 import '../domain/repositories/product_repository.dart';
 import '../domain/repositories/report_repository.dart';
 import '../domain/repositories/sales_repository.dart';
@@ -69,6 +71,8 @@ final categoryRepositoryProvider =
     Provider<CategoryRepository>((ref) => SupabaseCategoryRepository(ref.watch(supabaseProvider)));
 final productRepositoryProvider =
     Provider<ProductRepository>((ref) => SupabaseProductRepository(ref.watch(supabaseProvider)));
+final productPhotoRepositoryProvider =
+    Provider<ProductPhotoRepository>((ref) => SupabaseProductPhotoRepository(ref.watch(supabaseProvider)));
 final salesRepositoryProvider = Provider<SalesRepository>((ref) => SupabaseSalesRepository(ref.watch(supabaseProvider)));
 final sessionRepositoryProvider =
     Provider<SessionRepository>((ref) => SupabaseSessionRepository(ref.watch(supabaseProvider)));

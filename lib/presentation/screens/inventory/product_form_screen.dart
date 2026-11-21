@@ -6,16 +6,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
 import '../../../domain/business_rules.dart';
+import '../../../data/files/browser_file_picker.dart';
+import '../../../data/files/photo_shrinker.dart';
 import '../../../domain/models/artist.dart';
 import '../../../domain/models/category_attribute.dart';
+import '../../../domain/models/product.dart';
 import '../../../domain/models/product_category.dart';
+import '../../../domain/models/product_photo.dart';
 import '../../../domain/models/variant.dart';
 import '../../../domain/models/variant_input.dart';
 import '../../../domain/pricing.dart';
 import '../../providers.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
+import '../../widgets/app_messenger.dart';
+import '../../widgets/category_icon.dart';
 import '../../widgets/dialogs.dart';
+import '../../widgets/product_photo.dart';
 import '../../widgets/responsive_fields.dart';
 import '../artists/artists_screen.dart';
 
@@ -72,6 +79,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   DateTime _deliveryDate = DateTime.now();
   bool _perVariantPricing = false;
   bool _customTax = false;
+  bool _saving = false;
+
+  /// The product as loaded (edit only): its current photo.
+  Product? _original;
+
+  /// A photo chosen in this form, already shrunk; uploaded on Save.
+  PhotoPair? _newPhoto;
+
+  /// The current photo is to be removed on Save.
+  bool _removePhoto = false;
+
+  /// Shrinking a chosen photo.
+  bool _preparingPhoto = false;
 
   /// Attribute name → values chosen for this product.
   final Map<String, List<String>> _values = {};
@@ -95,6 +115,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       final p = await ref.read(productRepositoryProvider).product(widget.productId!);
       final cats = await ref.read(categoryRepositoryProvider).categories();
       if (p != null) {
+        _original = p;
         _name.text = p.name;
         _price.text = centsToInput(p.basePriceCents);
         _artistId = p.artistId;
@@ -203,8 +224,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       ));
     }
 
+    setState(() => _saving = true);
+    final int savedId;
     try {
-      await ref.read(productRepositoryProvider).save(
+      savedId = await ref.read(productRepositoryProvider).save(
           id: widget.productId,
           name: _name.text.trim(),
           artistId: _artistId!,
@@ -216,11 +239,115 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           variants: variants,
         );
     } catch (e) {
-      if (mounted) showMessage(context, 'Could not save: $e', error: true);
+      if (mounted) {
+        setState(() => _saving = false);
+        showMessage(context, 'Could not save: $e', error: true);
+      }
       return;
+    }
+    // The product is saved; now its photo. A photo problem doesn't undo the save.
+    final photos = ref.read(productPhotoRepositoryProvider);
+    try {
+      if (_newPhoto != null) {
+        await photos.setPhoto(savedId, _newPhoto!, previous: _original);
+      } else if (_removePhoto && _original != null && _original!.hasPhoto) {
+        await photos.removePhoto(_original!);
+      }
+    } catch (e) {
+      showAppMessage('The product was saved, but the photo was not: $e', error: true);
     }
     refreshData(ref);
     if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _choosePhoto() async {
+    final PickedFile? file;
+    try {
+      file = await pickFile(accept: 'image/*,.heic,.heif');
+    } catch (e) {
+      if (mounted) showMessage(context, 'Could not open the photo: $e', error: true);
+      return;
+    }
+    if (file == null || !mounted) return;
+    setState(() => _preparingPhoto = true);
+    try {
+      final photo = await shrinkPhotoBytes(file.bytes, fileName: file.name);
+      if (mounted) setState(() => _newPhoto = photo);
+    } catch (e) {
+      if (mounted) showMessage(context, '$e', error: true);
+    } finally {
+      if (mounted) setState(() => _preparingPhoto = false);
+    }
+  }
+
+  void _clearPhoto() => setState(() {
+        _newPhoto = null;
+        _removePhoto = true;
+      });
+
+  bool get _showsPhoto => _newPhoto != null || (!_removePhoto && (_original?.hasPhoto ?? false));
+
+  Widget _photoPreview() {
+    const size = AppSizes.photoForm;
+    if (_preparingPhoto) {
+      return const SizedBox.square(dimension: size, child: Center(child: CircularProgressIndicator()));
+    }
+    if (_newPhoto != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(AppRadius.s * 2),
+        child: Image.memory(_newPhoto!.thumb, width: size, height: size, fit: BoxFit.cover),
+      );
+    }
+    if (_showsPhoto) return ProductPhoto(product: _original!, size: size, large: true, canEnlarge: true);
+    return CategoryIcon(categoryName: _category?.name ?? '', size: size);
+  }
+
+  Widget _photoSection() {
+    final muted = TextStyle(color: Theme.of(context).colorScheme.outline);
+    return Wrap(
+      spacing: AppSpacing.l,
+      runSpacing: AppSpacing.m,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        _photoPreview(),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: AppSizes.fieldWide),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Wrap(
+                spacing: AppSpacing.s,
+                runSpacing: AppSpacing.s,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _preparingPhoto ? null : _choosePhoto,
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    label: Text(_showsPhoto ? 'Change photo' : 'Choose photo'),
+                  ),
+                  if (_showsPhoto)
+                    TextButton.icon(
+                      onPressed: _preparingPhoto ? null : _clearPhoto,
+                      icon: const Icon(Icons.hide_image_outlined),
+                      label: const Text('Remove photo'),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.s),
+              Text(
+                _newPhoto != null
+                    ? 'New photo: it is uploaded when you press Save.'
+                    : _removePhoto && (_original?.hasPhoto ?? false)
+                        ? 'The photo is removed when you press Save.'
+                        : 'Optional. Pick it from Google Drive, Files or Photos. '
+                            'Without a photo, the category icon is shown.',
+                style: muted,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _delete() async {
@@ -235,6 +362,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     if (!mounted) return;
     if (!await confirm(context, 'Delete product?', 'This cannot be undone.', action: 'Delete')) return;
     await repo.delete(widget.productId!);
+    if (_original != null) await ref.read(productPhotoRepositoryProvider).deleteFilesOf(_original!);
     refreshData(ref);
     if (mounted) Navigator.pop(context);
   }
@@ -264,7 +392,14 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     child: const Text('Delete'),
                   ),
           const SizedBox(width: AppSpacing.s),
-          FilledButton.icon(onPressed: _save, icon: const Icon(Icons.check), label: const Text('Save')),
+          FilledButton.icon(
+            onPressed: _saving || _preparingPhoto ? null : _save,
+            icon: _saving
+                ? const SizedBox.square(
+                    dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.check),
+            label: const Text('Save'),
+          ),
           SizedBox(width: pad),
         ],
       ),
@@ -284,6 +419,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         children: [
                           _section('1. Product'),
                           _productFields(artists),
+                          const SizedBox(height: AppSpacing.l),
+                          _photoSection(),
                           const SizedBox(height: AppSpacing.xl),
                           _section('2. Category'),
                           Wrap(
