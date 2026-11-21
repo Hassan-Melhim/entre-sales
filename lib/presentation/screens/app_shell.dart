@@ -6,6 +6,7 @@ import '../staff_accounts.dart';
 
 import '../theme/app_tokens.dart';
 import '../theme/breakpoints.dart';
+import '../widgets/backup_banner.dart';
 import '../widgets/staff_avatar.dart';
 import 'artists/artists_screen.dart';
 import 'inventory/inventory_screen.dart';
@@ -95,7 +96,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final page = _destinations[_index].build();
+    // The backup reminder sits above every page.
+    final page = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [const BackupBanner(), Expanded(child: _destinations[_index].build())],
+    );
 
     if (context.isCompact) {
       return Scaffold(

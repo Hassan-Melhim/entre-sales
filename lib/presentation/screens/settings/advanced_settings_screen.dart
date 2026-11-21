@@ -11,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
 import '../../widgets/async_view.dart';
+import '../../widgets/category_icon.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/info_row.dart';
 import 'import_screen.dart';
@@ -67,9 +68,11 @@ class _CategoriesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cats = ref.watch(categoriesProvider);
+    final count = cats.valueOrNull?.length;
     return SettingsSection(
-      title: 'Categories',
-      subtitle: 'Tax rate and the extra fields asked when logging a product',
+      title: count == null ? 'Categories' : 'Categories ($count)',
+      subtitle: 'Tax rate and the extra fields asked when logging a product. Tap to show them.',
+      collapsible: true,
       action: FilledButton.icon(
         onPressed: () => _edit(context, null),
         icon: const Icon(Icons.add),
@@ -78,18 +81,32 @@ class _CategoriesSection extends ConsumerWidget {
       children: [
         AsyncView(
           value: cats,
-          builder: (list) => Column(
-            children: [
-              for (final c in list)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(c.name),
-                  subtitle: Text(_describe(c)),
-                  trailing: const Icon(Icons.edit_outlined),
-                  onTap: () => _edit(context, c),
-                ),
-            ],
-          ),
+          builder: (list) => LayoutBuilder(builder: (context, c) {
+            // Two columns when there is room for them.
+            final columns = c.maxWidth >= AppLayout.twoColumnMin ? 2 : 1;
+            final width = (c.maxWidth - (columns - 1) * AppSpacing.m) / columns;
+            return Wrap(
+              spacing: AppSpacing.m,
+              runSpacing: AppSpacing.s,
+              children: [
+                for (final cat in list)
+                  SizedBox(
+                    width: width,
+                    child: Card.outlined(
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
+                      child: ListTile(
+                        leading: Icon(CategoryIcon.iconFor(cat.name)),
+                        title: Text(cat.name),
+                        subtitle: Text(_describe(cat)),
+                        trailing: const Icon(Icons.edit_outlined),
+                        onTap: () => _edit(context, cat),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
         ),
       ],
     );

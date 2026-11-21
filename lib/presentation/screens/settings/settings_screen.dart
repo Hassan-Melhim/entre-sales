@@ -1,14 +1,12 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/dates.dart';
 import '../../../core/money.dart';
-import '../../../data/export/export_file.dart';
 import '../../../domain/business_rules.dart';
+import '../../../domain/models/backup_status.dart';
 import '../../../domain/models/discount.dart';
-import '../../../domain/repositories/device_settings_repository.dart';
+import '../../backup_actions.dart';
 import '../../providers.dart';
 import '../../staff_accounts.dart';
 import '../../theme/app_colors.dart';
@@ -16,7 +14,6 @@ import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/dialogs.dart';
-import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/staff_avatar.dart';
 import 'advanced_settings_screen.dart';
@@ -233,7 +230,8 @@ class _DiscountsSection extends ConsumerWidget {
 // ------------------------------------------------------------------ Backup
 
 /// Supabase keeps the data; this is an extra copy the owners control
-/// (the free Supabase plan makes no automatic backups).
+/// (the free Supabase plan makes no automatic backups). The date of the last
+/// backup is shared by every device.
 class _BackupSection extends ConsumerStatefulWidget {
   const _BackupSection();
   @override
@@ -246,11 +244,7 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Future<void> _download() async {
     setState(() => _busy = true);
     try {
-      final bytes = await ref.read(backupRepositoryProvider).exportBackup();
-      await deliverExport(ExportFile(
-          'entre_sales_backup_${fileStamp(DateTime.now())}.json', Uint8List.fromList(bytes), ExportFile.json));
-      await ref.read(deviceSettingsProvider).set(DeviceSettingKeys.lastBackupAt, DateTime.now().toIso8601String());
-      if (mounted) setState(() {});
+      await downloadBackup(ref);
     } catch (e) {
       if (mounted) showMessage(context, 'Could not make the backup: $e', error: true);
     } finally {
@@ -260,19 +254,15 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
 
   @override
   Widget build(BuildContext context) {
-    final last = DateTime.tryParse(ref.read(deviceSettingsProvider).get(DeviceSettingKeys.lastBackupAt) ?? '');
-    final overdue = last == null || DateTime.now().difference(last).inDays >= 7;
+    final status = ref.watch(backupStatusProvider);
     final theme = Theme.of(context);
     return SettingsSection(
       title: 'Backup',
       subtitle: 'Downloads all the store\'s data (artists, products, sales, refunds, history of changes) '
-          'as one file. Keep a copy somewhere safe, once a week.',
+          'as one file. Keep the copies somewhere safe (e.g. a "Backups" folder in Google Drive).',
       children: [
-        Text(
-          last == null ? 'Never downloaded on this device.' : 'Last downloaded on this device: ${formatDateTime(last)}.',
-          style: TextStyle(color: overdue ? context.appColors.warning : theme.colorScheme.outline),
-        ),
-        const SizedBox(height: AppSpacing.s),
+        AsyncView(value: status, builder: (s) => _counter(context, s)),
+        const SizedBox(height: AppSpacing.m),
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
@@ -281,6 +271,57 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
                 ? const SizedBox.square(dimension: AppSizes.iconSmall, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.download_outlined),
             label: const Text('Download backup'),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.s),
+        Text(
+          'Suggested: once a week (the app reminds you after ${BackupStatus.dueAfterDays} days), and always '
+          'before clearing or importing data. Keep at least the last 4 weekly files.',
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.outline),
+        ),
+      ],
+    );
+  }
+
+  Widget _counter(BuildContext context, BackupStatus s) {
+    final now = DateTime.now();
+    final theme = Theme.of(context);
+    final days = s.daysSince(now);
+    final color = switch (s.urgency(now)) {
+      BackupUrgency.ok => context.appColors.success,
+      BackupUrgency.due => context.appColors.warning,
+      BackupUrgency.overdue => theme.colorScheme.error,
+    };
+    return Row(
+      children: [
+        Container(
+          width: AppSizes.avatarMedium,
+          height: AppSizes.avatarMedium,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
+          child: days == null
+              ? Icon(Icons.priority_high, color: color)
+              : Text('$days', style: theme.textTheme.titleLarge?.copyWith(color: color, fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(width: AppSpacing.m),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                days == null
+                    ? 'No backup yet'
+                    : days == 0
+                        ? 'Backed up today'
+                        : days == 1
+                        ? '1 day since the last backup'
+                        : '$days days since the last backup',
+                style: theme.textTheme.titleSmall?.copyWith(color: color),
+              ),
+              if (s.at != null)
+                Text('${formatDateTime(s.at!)} by ${accountName(s.byEmail)}',
+                    style: TextStyle(color: theme.colorScheme.outline)),
+            ],
           ),
         ),
       ],

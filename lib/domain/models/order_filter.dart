@@ -6,12 +6,19 @@ class OrderFilter {
   final int? sessionId;
   final String query;
 
-  const OrderFilter({this.range, this.sessionId, this.query = ''});
+  /// Sales with at least one item in this category (the whole sale is listed).
+  final int? categoryId;
+
+  const OrderFilter({this.range, this.sessionId, this.query = '', this.categoryId});
 
   @override
   bool operator ==(Object other) =>
-      other is OrderFilter && other.range == range && other.sessionId == sessionId && other.query == query;
+      other is OrderFilter &&
+      other.range == range &&
+      other.sessionId == sessionId &&
+      other.query == query &&
+      other.categoryId == categoryId;
 
   @override
-  int get hashCode => Object.hash(range, sessionId, query);
+  int get hashCode => Object.hash(range, sessionId, query, categoryId);
 }

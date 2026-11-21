@@ -33,9 +33,23 @@ class ReportsScreen extends ConsumerStatefulWidget {
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   ReportPeriod _period = ReportPeriod.containing(PeriodKind.month, DateTime.now());
 
-  void _setKind(PeriodKind kind) => setState(() => _period = kind == PeriodKind.custom
-      ? ReportPeriod.custom(_period.range)
-      : ReportPeriod.containing(kind, _period.range.start));
+  Future<void> _setKind(PeriodKind kind) async {
+    if (kind == PeriodKind.allTime) {
+      // From the first sale ever made (today if there are none yet).
+      DateTime? first;
+      try {
+        first = await ref.read(salesRepositoryProvider).firstSaleAt();
+      } catch (e) {
+        if (mounted) showMessage(context, 'Could not find the first sale: $e', error: true);
+        return;
+      }
+      if (mounted) setState(() => _period = ReportPeriod.allTime(first ?? DateTime.now()));
+      return;
+    }
+    setState(() => _period = kind == PeriodKind.custom
+        ? ReportPeriod.custom(_period.range)
+        : ReportPeriod.containing(kind, _period.range.start));
+  }
 
   Future<void> _jumpTo() async {
     final d = await pickDate(context, _period.range.start);
@@ -104,6 +118,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
               ),
             ],
           )
+        else if (_period.kind == PeriodKind.allTime)
+          Text(_period.label, style: Theme.of(context).textTheme.titleMedium)
         else
           DateRangeField(
             value: _period.range,

@@ -21,6 +21,7 @@ import '../domain/business_rules.dart';
 import '../domain/models/app_user.dart';
 import '../domain/models/artist.dart';
 import '../domain/models/artist_statement.dart';
+import '../domain/models/backup_status.dart';
 import '../domain/models/calendar_session.dart';
 import '../domain/models/date_range.dart';
 import '../domain/models/discount.dart';
@@ -179,6 +180,14 @@ final ordersProvider = FutureProvider.family<List<SaleOrder>, OrderFilter>((ref,
 final sessionsProvider = FutureProvider<List<CalendarSession>>((ref) {
   ref.watch(dataRevisionProvider);
   return ref.watch(sessionRepositoryProvider).sessions();
+});
+
+/// The last backup from any device, and who downloaded it.
+final backupStatusProvider = FutureProvider<BackupStatus>((ref) async {
+  ref.watch(dataRevisionProvider);
+  final settings = ref.watch(settingsRepositoryProvider);
+  final (at, by) = await (settings.get(SharedSettingKeys.lastBackupAt), settings.get(SharedSettingKeys.lastBackupBy)).wait;
+  return BackupStatus(at: DateTime.tryParse(at ?? '')?.toLocal(), byEmail: by);
 });
 
 final settingProvider = FutureProvider.family<String?, String>((ref, key) {

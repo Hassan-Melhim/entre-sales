@@ -150,6 +150,11 @@ def main():
     check(len(c.execute('select * from report_stock_items()').fetchall()) == 2, 'stock items')
     check(len(c.execute("select * from search_orders(now() - interval '1 day', now() + interval '1 day', null, 'sunset')").fetchall()) == 6,
           'order search')
+    other_cat = one(c, "select id from categories where id <> %s order by id limit 1", (posters,))[0]
+    check(len(c.execute("select * from search_orders(now() - interval '1 day', now() + interval '1 day', null, '', %s)",
+                        (posters,)).fetchall()) == 6, 'sales filtered by category')
+    check(len(c.execute("select * from search_orders(null, null, null, '', %s)", (other_cat,)).fetchall()) == 0,
+          'no sales in another category')
 
     print('security')
     for sql, what in [

@@ -7,6 +7,7 @@ import '../../../data/export/csv_export_service.dart';
 import '../../../domain/models/date_range.dart';
 import '../../../domain/models/order_filter.dart';
 import '../../../domain/models/order_status.dart';
+import '../../../domain/models/report_period.dart';
 import '../../../domain/models/sale_order.dart';
 import '../../providers.dart';
 import '../../theme/app_colors.dart';
@@ -15,10 +16,11 @@ import '../../theme/breakpoints.dart';
 import '../../widgets/receipt_actions.dart';
 import '../../widgets/adaptive_button.dart';
 import '../../widgets/async_view.dart';
-import '../../widgets/date_range_field.dart';
+import '../../widgets/category_tabs.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
+import '../../widgets/month_or_range_picker.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/search_field.dart';
 import '../../widgets/tag.dart';
@@ -32,12 +34,18 @@ class SalesScreen extends ConsumerStatefulWidget {
 }
 
 class _SalesScreenState extends ConsumerState<SalesScreen> {
-  late DateRange _range = DateRange.month(DateTime.now().year, DateTime.now().month);
+  ReportPeriod _period = ReportPeriod.containing(PeriodKind.month, DateTime.now());
   String _query = '';
+  int? _categoryId;
+
+  DateRange get _range => _period.range;
 
   @override
   Widget build(BuildContext context) {
-    final orders = ref.watch(ordersProvider(OrderFilter(range: _range, query: _query)));
+    final orders = ref.watch(ordersProvider(OrderFilter(range: _range, query: _query, categoryId: _categoryId)));
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? const [];
+    final match = categories.where((c) => c.id == _categoryId);
+    final String? categoryName = match.isEmpty ? null : match.first.name;
     final pad = context.pagePadding;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -55,9 +63,11 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
           bottom: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DateRangeField(value: _range, onChanged: (r) => setState(() => _range = r)),
+              MonthOrRangePicker(period: _period, onChanged: (p) => setState(() => _period = p)),
               const SizedBox(height: AppSpacing.m),
               SearchField(hint: 'Search by product', onChanged: (v) => setState(() => _query = v)),
+              const SizedBox(height: AppSpacing.s),
+              CategoryTabs(selectedId: _categoryId, onChanged: (id) => setState(() => _categoryId = id)),
             ],
           ),
         ),
@@ -65,14 +75,20 @@ class _SalesScreenState extends ConsumerState<SalesScreen> {
           child: AsyncView(
             value: orders,
             builder: (list) {
-              if (list.isEmpty) return const EmptyState(icon: Icons.receipt_long_outlined, message: 'No sales in this period');
+              if (list.isEmpty) {
+                return EmptyState(
+                    icon: Icons.receipt_long_outlined,
+                    message: categoryName == null ? 'No sales in this period' : 'No $categoryName sales in this period');
+              }
               final total = list.fold<int>(0, (s, o) => s + o.totalCents);
               return ListView.separated(
                 padding: EdgeInsets.fromLTRB(pad, 0, pad, AppSpacing.xl),
                 itemCount: list.length + 1,
                 separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.s),
                 itemBuilder: (context, i) => i == 0
-                    ? Text('${list.length} sales · ${formatCents(total)} (before refunds) · ${_range.label}',
+                    ? Text(
+                        '${list.length} sales${categoryName == null ? '' : ' with $categoryName'} · '
+                        '${formatCents(total)} (whole receipts, before refunds) · ${_period.label}',
                         style: TextStyle(color: Theme.of(context).colorScheme.outline))
                     : OrderCard(order: list[i - 1]),
               );

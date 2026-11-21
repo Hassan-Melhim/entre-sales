@@ -40,8 +40,16 @@ class SupabaseSalesRepository implements SalesRepository {
               'p_to': filter.range == null ? null : momentToDb(filter.range!.end),
               'p_session_id': filter.sessionId,
               'p_query': filter.query.trim(),
+              // Only sent when used, so the list still works before migration 6 is run.
+              if (filter.categoryId != null) 'p_category_id': filter.categoryId,
             }).range(from, to));
         return rows.map(SupabaseMappers.order).toList();
+      });
+
+  @override
+  Future<DateTime?> firstSaleAt() => guard(() async {
+        final row = await _db.from('orders').select('created_at').order('created_at').limit(1).maybeSingle();
+        return row == null ? null : parseMoment(row['created_at']);
       });
 
   @override

@@ -8,7 +8,7 @@
 ///   --dart-define=SUPABASE_URL=… --dart-define=SUPABASE_PUBLISHABLE_KEY=…
 abstract final class AppConfig {
   /// Shown in Advanced settings → About (keep in step with pubspec.yaml).
-  static const appVersion = '0.4.0';
+  static const appVersion = '0.5.0';
 
   static const supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',

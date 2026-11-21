@@ -23,3 +23,14 @@ StaffAccount? staffFor(String? email) {
   }
   return null;
 }
+
+/// Logins that are not shown on the sign-in screen, by email → name.
+const Map<String, String> otherAccountNames = {
+  'hassanmelhim2@gmail.com': 'Hasan',
+};
+
+/// A person's name for [email] (staff or other known logins), else the email.
+String accountName(String? email) {
+  final e = email?.trim().toLowerCase() ?? '';
+  return staffFor(e)?.name ?? otherAccountNames[e] ?? (e.isEmpty ? 'someone' : e);
+}

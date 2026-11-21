@@ -70,6 +70,8 @@ class AppSizes {
   // Lists
   static const double infoLabel = 260;
   static const double iconSmall = 16;
+  static const double iconMedium = 20;
+  static const double categoryTabHeight = 44;
   static const double iconTag = 14;
   static const double iconLarge = 48; // empty states, error screens
   static const double emptyStateIcon = 48;
@@ -96,5 +98,8 @@ class AppLayout {
 
   /// Rows of form fields from these widths.
   static const double filterRowMin = 720;
+
+  /// Lists such as the categories in Advanced settings use two columns above this width.
+  static const double twoColumnMin = 640;
   static const double productFieldsRowMin = 760;
 }

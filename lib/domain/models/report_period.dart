@@ -7,13 +7,14 @@ enum PeriodKind {
   month('Month'),
   quarter('Quarter'),
   year('Year'),
+  allTime('All time'),
   custom('Custom');
 
   final String label;
   const PeriodKind(this.label);
 }
 
-/// A period to report on: a day, month, quarter, year or a custom range.
+/// A period to report on: a day, month, quarter, year, all time or a custom range.
 class ReportPeriod {
   final PeriodKind kind;
   final DateRange range;
@@ -32,6 +33,8 @@ class ReportPeriod {
         return ReportPeriod._(kind, DateRange.quarter(anchor.year, quarterOf(anchor)));
       case PeriodKind.year:
         return ReportPeriod._(kind, DateRange.year(anchor.year));
+      case PeriodKind.allTime:
+        return ReportPeriod.allTime(anchor);
       case PeriodKind.custom:
         return ReportPeriod._(kind, DateRange.day(anchor));
     }
@@ -39,9 +42,15 @@ class ReportPeriod {
 
   factory ReportPeriod.custom(DateRange range) => ReportPeriod._(PeriodKind.custom, range);
 
+  /// From [firstDay] (the day of the first sale) up to and including [today].
+  factory ReportPeriod.allTime(DateTime firstDay, {DateTime? today}) {
+    final last = today ?? DateTime.now();
+    return ReportPeriod._(PeriodKind.allTime, DateRange.days(firstDay.isAfter(last) ? last : firstDay, last));
+  }
+
   static int quarterOf(DateTime d) => (d.month - 1) ~/ 3 + 1;
 
-  bool get canStep => kind != PeriodKind.custom;
+  bool get canStep => kind != PeriodKind.custom && kind != PeriodKind.allTime;
 
   /// The same kind of period before / after this one.
   ReportPeriod previous() => _shift(-1);
@@ -58,6 +67,7 @@ class ReportPeriod {
         return ReportPeriod.containing(kind, DateTime(s.year, s.month + 3 * n, 1));
       case PeriodKind.year:
         return ReportPeriod.containing(kind, DateTime(s.year + n, 1, 1));
+      case PeriodKind.allTime:
       case PeriodKind.custom:
         return this;
     }
@@ -74,6 +84,8 @@ class ReportPeriod {
         return 'Q${quarterOf(s)} ${s.year}';
       case PeriodKind.year:
         return '${s.year}';
+      case PeriodKind.allTime:
+        return 'All time (since ${formatDate(s)})';
       case PeriodKind.custom:
         return range.label;
     }
@@ -92,6 +104,8 @@ class ReportPeriod {
         return '${s.year}-Q${quarterOf(s)}';
       case PeriodKind.year:
         return '${s.year}';
+      case PeriodKind.allTime:
+        return 'all-time';
       case PeriodKind.custom:
         return range.isSingleDay ? fileStamp(s) : '${fileStamp(s)}-${fileStamp(range.lastDay)}';
     }

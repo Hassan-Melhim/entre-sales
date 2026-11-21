@@ -60,6 +60,7 @@ once each** (if you ran the first three earlier, just run the newer ones):
    the logos in Storage. It may show the *destructive operation* warning (confirm).
 5. `20261121120000_product_photos.sql`: product photos. It creates the **product-photos** Storage
    bucket (public to view; only signed-in staff can add, change or remove photos).
+6. `20261121130000_sales_category_filter.sql`: lets the Sales screen filter by category.
 
 For each one:
 

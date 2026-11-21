@@ -20,6 +20,9 @@ abstract interface class SalesRepository {
 
   /// Newest first.
   Future<List<SaleOrder>> orders([OrderFilter filter = const OrderFilter()]);
+
+  /// When the first sale was made (imported past sales included); null if none.
+  Future<DateTime?> firstSaleAt();
   Future<SaleOrder?> order(int id);
 
   /// Refunds order item id → units. Items go back into stock. Dated now,

@@ -171,6 +171,19 @@ camera details left out) and kept in the public Storage bucket **product-photos*
   anything is uploaded. Products that already have a photo are skipped unless you tick *Replace*.
   HEIC photos open in Safari, not Chrome. The matching is in `lib/domain/photos/photo_matcher.dart`.
 
+## Filters, reports and backups
+
+- **Category tabs** (`lib/presentation/widgets/category_tabs.dart`): "All" plus one tab per category
+  with its icon, on Sell, Inventory and Sales. With a category chosen on Sell / Inventory, the artist
+  list only offers artists who have products in it. On Sales, a sale is listed when any of its items is
+  in the category, shown whole with its full total.
+- **Month or date range** (`month_or_range_picker.dart`) is the same on Invoices and Sales.
+- **Reports → All time** runs from the first sale (imported past sales included) to today.
+- **Backups:** Settings shows the days since the last backup, when and by whom, shared by every device
+  (stored in the `settings` table). After 7 days a banner reminds everyone (orange; red after 14 or if
+  there has never been one); *Not today* hides it on that device until the next day. Suggested rhythm:
+  weekly, and before clearing or importing data.
+
 ## Invoices and receipts
 
 PDFs follow the store's "Items Sold" template: title and period on the left with the three kisses,

@@ -1,4 +1,5 @@
 import 'package:entre_sales/domain/business_rules.dart';
+import 'package:entre_sales/domain/models/backup_status.dart';
 import 'package:entre_sales/domain/models/date_range.dart';
 import 'package:entre_sales/domain/models/report_period.dart';
 import 'package:entre_sales/domain/models/timeline_unit.dart';
@@ -91,10 +92,38 @@ void main() {
       expect(ReportPeriod.containing(PeriodKind.year, DateTime(2026)).timelineUnit, TimelineUnit.month);
     });
 
+    test('all time runs from the first sale to today and cannot be stepped', () {
+      final a = ReportPeriod.allTime(DateTime(2025, 3, 12, 15, 30), today: DateTime(2026, 11, 21, 10));
+      expect(a.range.start, DateTime(2025, 3, 12));
+      expect(a.range.end, DateTime(2026, 11, 22));
+      expect(a.canStep, isFalse);
+      expect(a.previous(), a);
+      expect(a.fileLabel, 'all-time');
+      expect(a.timelineUnit, TimelineUnit.month);
+    });
+
     test('custom period cannot be stepped', () {
       final c = ReportPeriod.custom(DateRange.days(DateTime(2026, 10, 1), DateTime(2026, 10, 15)));
       expect(c.canStep, isFalse);
       expect(c.next(), c);
+    });
+  });
+
+  group('Backup reminder', () {
+    final now = DateTime(2026, 11, 21, 18);
+    test('counts calendar days and gets more urgent', () {
+      expect(const BackupStatus().daysSince(now), isNull);
+      expect(const BackupStatus().urgency(now), BackupUrgency.overdue);
+      expect(BackupStatus(at: DateTime(2026, 11, 21, 9)).ageLabel(now), 'Today');
+      expect(BackupStatus(at: DateTime(2026, 11, 20, 23)).daysSince(now), 1);
+      expect(BackupStatus(at: DateTime(2026, 11, 15)).urgency(now), BackupUrgency.ok);
+      expect(BackupStatus(at: DateTime(2026, 11, 14)).urgency(now), BackupUrgency.due);
+      expect(BackupStatus(at: DateTime(2026, 11, 7)).urgency(now), BackupUrgency.overdue);
+    });
+
+    test('a daylight-saving change still counts whole days', () {
+      // Clocks went back on 25 October 2026 in Spain.
+      expect(BackupStatus(at: DateTime(2026, 10, 24)).daysSince(DateTime(2026, 10, 26)), 2);
     });
   });
 }

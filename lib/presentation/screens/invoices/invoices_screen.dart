@@ -14,10 +14,10 @@ import '../../providers.dart';
 import '../../theme/app_tokens.dart';
 import '../../theme/breakpoints.dart';
 import '../../widgets/async_view.dart';
-import '../../widgets/date_range_field.dart';
 import '../../widgets/dialogs.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
+import '../../widgets/month_or_range_picker.dart';
 import '../../widgets/page_header.dart';
 import '../sales/sales_screen.dart';
 
@@ -68,8 +68,6 @@ class _ArtistPayoutsState extends ConsumerState<_ArtistPayouts> {
   /// A calendar month (with previous / next) or a custom date range.
   ReportPeriod _period = ReportPeriod.containing(PeriodKind.month, DateTime.now());
 
-  bool get _isCustom => _period.kind == PeriodKind.custom;
-
   Future<void> _export(_ExportKind kind) async {
     final range = _period.range;
     final list = await ref.read(statementsProvider(range).future);
@@ -101,38 +99,7 @@ class _ArtistPayoutsState extends ConsumerState<_ArtistPayouts> {
             runSpacing: AppSpacing.s,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: false, label: Text('Month'), icon: Icon(Icons.calendar_month)),
-                  ButtonSegment(value: true, label: Text('Date range'), icon: Icon(Icons.date_range)),
-                ],
-                selected: {_isCustom},
-                onSelectionChanged: (s) => setState(() => _period = s.first
-                    ? ReportPeriod.custom(_period.range)
-                    : ReportPeriod.containing(PeriodKind.month, _period.range.start)),
-              ),
-              if (_isCustom)
-                DateRangeField(
-                  value: _period.range,
-                  onChanged: (r) => setState(() => _period = ReportPeriod.custom(r)),
-                )
-              else
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Previous month',
-                      onPressed: () => setState(() => _period = _period.previous()),
-                      icon: const Icon(Icons.chevron_left),
-                    ),
-                    Text(_period.label, style: Theme.of(context).textTheme.titleMedium),
-                    IconButton(
-                      tooltip: 'Next month',
-                      onPressed: () => setState(() => _period = _period.next()),
-                      icon: const Icon(Icons.chevron_right),
-                    ),
-                  ],
-                ),
+              MonthOrRangePicker(period: _period, onChanged: (p) => setState(() => _period = p)),
               PopupMenuButton<_ExportKind>(
                 tooltip: 'Export / print',
                 onSelected: _export,
