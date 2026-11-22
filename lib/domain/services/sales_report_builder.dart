@@ -48,18 +48,20 @@ class SalesReportBuilder {
       payoutByArtist[r.artistId] = (payoutByArtist[r.artistId] ?? 0) - r.artistPayoutCents;
       residentByArtist[r.artistId] = r.artistResident;
     }
-    var payout = 0;
+    var shares = 0;
     var residentTax = 0;
     payoutByArtist.forEach((id, p) {
-      payout += p;
+      shares += p;
       if (residentByArtist[id] == true) {
         residentTax += Pricing.residentTax(p, BusinessRules.spainResidentArtistTaxPercent);
       }
     });
+    final payout = Pricing.artistPayoutsWithoutTax(artistSharesCents: shares, residentTaxCents: residentTax);
     final profit = Pricing.storeProfit(
       customerPaidCents: revenue,
-      artistPayoutCents: payout,
-      artistResidentTaxAddedCents: residentTax,
+      vatCents: vat,
+      artistSharesCents: shares,
+      residentTaxCents: residentTax,
     );
 
     // --- Breakdowns (sales minus refunds)
@@ -78,14 +80,43 @@ class SalesReportBuilder {
       }
     }
 
+    // Store profit of one line. The resident tax is worked out per line here
+    // (the totals above work it out per artist), so these can differ from the
+    // headline by a few cents.
+    int lineProfit(int total, int tax, int share, bool resident) => Pricing.storeProfit(
+          customerPaidCents: total,
+          vatCents: tax,
+          artistSharesCents: share,
+          residentTaxCents: resident ? Pricing.residentTax(share, BusinessRules.spainResidentArtistTaxPercent) : 0,
+        );
     for (final i in sold) {
       add(i.categoryName, i.artistName, i.artistGender, i.productName, i.quantity, i.totalCents,
-          i.totalCents - i.artistPayoutCents);
+          lineProfit(i.totalCents, i.taxCents, i.artistPayoutCents, i.artistResident));
     }
     for (final r in refunds) {
       add(r.categoryName, r.artistName, r.artistGender, r.productName, -r.quantity, -r.totalCents,
-          -r.totalCents + r.artistPayoutCents);
+          -lineProfit(r.totalCents, r.taxCents, r.artistPayoutCents, r.artistResident));
     }
+
+    // --- Payment methods (sales as made, before refunds)
+    final payOrders = <String, int>{};
+    final payRevenue = <String, int>{};
+    for (final o in orders) {
+      payOrders[o.paymentMethod] = (payOrders[o.paymentMethod] ?? 0) + 1;
+      payRevenue[o.paymentMethod] = (payRevenue[o.paymentMethod] ?? 0) + o.totalCents;
+    }
+    final payments = [for (final m in payOrders.keys) PaymentSplit(m, payOrders[m]!, payRevenue[m]!)]
+      ..sort((a, b) => b.revenueCents.compareTo(a.revenueCents));
+
+    // --- Workshop / event sessions vs. other times (before refunds)
+    final inSession = orders.where((o) => o.sessionId != null).toList();
+    final sessions = SessionSplit(
+      sessionCount: inSession.map((o) => o.sessionId).toSet().length,
+      sessionOrders: inSession.length,
+      sessionRevenueCents: inSession.fold<int>(0, (s, o) => s + o.totalCents),
+      otherOrders: orders.length - inSession.length,
+      otherRevenueCents: orders.where((o) => o.sessionId == null).fold<int>(0, (s, o) => s + o.totalCents),
+    );
     List<Breakdown> sorted(Map<String, Breakdown> m) =>
         m.values.toList()..sort((a, b) => b.revenueCents.compareTo(a.revenueCents));
 
@@ -144,6 +175,9 @@ class SalesReportBuilder {
       artistPayoutCents: payout,
       artistResidentTaxCents: residentTax,
       profitCents: profit,
+      payments: payments,
+      sessions: sessions,
+      stockValue: stockValue(stock),
       byCategory: sorted(byCategory),
       byArtist: sorted(byArtist),
       byGender: sorted(byGender),
@@ -157,6 +191,50 @@ class SalesReportBuilder {
       slowestSellers: shelfRows.reversed.take(10).toList(),
       longestOnDisplay: longest.take(10).toList(),
       turnover: turnover,
+    );
+  }
+
+  /// The stock on the shelf at today's prices and rates, as if it all sold
+  /// at full price. Null if the stock rows carry no prices (database not
+  /// updated yet).
+  static StockValue? stockValue(List<StockItem> stock) {
+    if (stock.any((s) => !s.hasPrices)) return null;
+    var units = 0, shelf = 0, profit = 0, payouts = 0, taxes = 0;
+    final byArtist = <String, StockValueRow>{};
+    for (final s in stock) {
+      final line = Pricing.line(
+        unitBaseCents: s.unitBaseCents!,
+        quantity: s.quantity,
+        taxPercent: s.taxPercent!,
+        discountPercent: 0,
+        commissionPercent: s.commissionPercent!,
+      );
+      final resident = s.artistResident
+          ? Pricing.residentTax(line.artistPayoutCents, BusinessRules.spainResidentArtistTaxPercent)
+          : 0;
+      final p = Pricing.storeProfit(
+        customerPaidCents: line.totalCents,
+        vatCents: line.taxCents,
+        artistSharesCents: line.artistPayoutCents,
+        residentTaxCents: resident,
+      );
+      units += s.quantity;
+      shelf += line.totalCents;
+      profit += p;
+      payouts += Pricing.artistPayoutsWithoutTax(artistSharesCents: line.artistPayoutCents, residentTaxCents: resident);
+      taxes += line.taxCents + resident;
+      final row = byArtist.putIfAbsent(s.artistName, () => StockValueRow(s.artistName));
+      row.units += s.quantity;
+      row.shelfCents += line.totalCents;
+      row.storeProfitCents += p;
+    }
+    return StockValue(
+      units: units,
+      shelfCents: shelf,
+      storeProfitCents: profit,
+      artistPayoutCents: payouts,
+      taxesCents: taxes,
+      byArtist: byArtist.values.toList()..sort((a, b) => b.shelfCents.compareTo(a.shelfCents)),
     );
   }
 

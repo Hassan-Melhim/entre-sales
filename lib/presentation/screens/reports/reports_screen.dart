@@ -22,6 +22,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/file_delivery.dart';
 import '../../widgets/page_header.dart';
 import '../../widgets/responsive_fields.dart';
+import 'report_guide.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -66,6 +67,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         PageHeader(
           title: 'Reports',
           actions: [
+            IconButton(
+              tooltip: 'What the figures mean',
+              icon: const Icon(Icons.info_outline),
+              onPressed: () => showReportGuide(context),
+            ),
             AdaptiveButton(
               icon: Icons.file_download_outlined,
               label: 'CSV',
@@ -152,12 +158,17 @@ class _ReportBody extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(pad, 0, pad, AppSpacing.xxl),
       children: [
         _KpiGrid(tiles: [
-          _Kpi('Store profit', formatCents(r.profitCents), highlight: true),
-          _Kpi('Revenue (incl. tax)', formatCents(r.revenueCents)),
-          _Kpi('Artist payouts', formatCents(r.artistPayoutCents + r.artistResidentTaxCents)),
-          _Kpi('VAT collected', formatCents(r.vatCents)),
-          _Kpi('Orders', '${r.orderCount}'),
+          _Kpi('Total sales', formatCents(r.revenueCents), note: 'what customers paid'),
+          _Kpi('Store profit', formatCents(r.profitCents),
+              highlight: true,
+              note: r.marginPercent == null ? null : '${r.marginPercent!.toStringAsFixed(1)}% of sales before VAT'),
+          _Kpi('Artist payouts', formatCents(r.artistPayoutCents)),
+          _Kpi('Taxes', formatCents(r.taxesCents),
+              note: 'VAT ${formatCents(r.vatCents)} · resident ${formatCents(r.artistResidentTaxCents)}'),
+          _Kpi('Sales', '${r.orderCount}'),
           _Kpi('Units sold', '${r.unitsSold}'),
+          _Kpi('Average sale', formatCents(r.averageSaleCents)),
+          _Kpi('Items per sale', r.itemsPerSale.toStringAsFixed(1)),
           _Kpi('Avg days to sell', r.avgDaysToSell?.toStringAsFixed(1) ?? '—'),
           if (r.refundsCents > 0) _Kpi('Refunds', formatCents(r.refundsCents)),
           if (r.discountCents > 0) _Kpi('Discounts', formatCents(r.discountCents)),
@@ -203,6 +214,14 @@ class _ReportBody extends StatelessWidget {
         ),
         gap,
         _Panel(title: 'By artist', child: _BreakdownBars(r.byArtist)),
+        gap,
+        _Panel(
+          title: 'Store profit by artist',
+          subtitle: 'What each artist\'s sales left the store, after taxes and their payout',
+          child: _BreakdownBars(r.byArtistProfit, byProfit: true),
+        ),
+        gap,
+        _pair(_paymentsPanel(r), _sessionsPanel(r)),
         gap,
         _Panel(
           title: 'Best-selling products',
@@ -256,7 +275,85 @@ class _ReportBody extends StatelessWidget {
             ),
           ),
         ),
+        gap,
+        _stockPanel(context, r.stockValue),
       ],
+    );
+  }
+
+  Widget _paymentsPanel(SalesReport r) {
+    final total = r.payments.fold<int>(0, (s, p) => s + p.revenueCents);
+    return _Panel(
+      title: 'Cash and card',
+      subtitle: 'Sales as rung up, before refunds',
+      child: _SimpleTable(
+        headers: const ['Paid by', 'Sales', 'Amount', 'Share'],
+        rows: [
+          for (final p in r.payments)
+            [
+              p.method,
+              '${p.orders}',
+              formatCents(p.revenueCents),
+              total == 0 ? '—' : '${(p.revenueCents * 100 / total).toStringAsFixed(0)}%',
+            ],
+        ],
+      ),
+    );
+  }
+
+  Widget _sessionsPanel(SalesReport r) {
+    final s = r.sessions;
+    return _Panel(
+      title: 'Workshops and events',
+      subtitle: s.sessionCount == 0
+          ? 'No sales during a workshop or event in this period'
+          : 'Sales during ${s.sessionCount} session${s.sessionCount == 1 ? '' : 's'} vs. other times',
+      child: _SimpleTable(
+        headers: const ['When', 'Sales', 'Amount', 'Average sale'],
+        rows: [
+          ['During sessions', '${s.sessionOrders}', formatCents(s.sessionRevenueCents), formatCents(s.sessionAverageCents)],
+          ['Other times', '${s.otherOrders}', formatCents(s.otherRevenueCents), formatCents(s.otherAverageCents)],
+        ],
+      ),
+    );
+  }
+
+  Widget _stockPanel(BuildContext context, StockValue? v) {
+    if (v == null) {
+      return const _Panel(
+        title: 'Stock on the shelf',
+        child: Text('Run supabase/migrations/20261122120000_report_details.sql in the Supabase SQL Editor '
+            'to see the value of the stock.'),
+      );
+    }
+    return _Panel(
+      title: 'Stock on the shelf (today)',
+      subtitle: 'Everything in stock now, at today\'s prices, as if it all sold without discount',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _KpiGrid(tiles: [
+            _Kpi('Units', '${v.units}'),
+            _Kpi('Shelf value', formatCents(v.shelfCents), note: 'VAT included'),
+            _Kpi('Store profit to come', formatCents(v.storeProfitCents), highlight: true),
+            _Kpi('Artist payouts to come', formatCents(v.artistPayoutCents)),
+          ]),
+          const SizedBox(height: AppSpacing.m),
+          _SimpleTable(
+            headers: const ['Artist', 'Units', 'Shelf value', 'Store profit'],
+            rows: [
+              for (final a in v.byArtist.take(15))
+                [a.artist, '${a.units}', formatCents(a.shelfCents), formatCents(a.storeProfitCents)],
+            ],
+          ),
+          if (v.byArtist.length > 15)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.s),
+              child: Text('Top 15 of ${v.byArtist.length} artists by shelf value. The CSV has them all.',
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
+        ],
+      ),
     );
   }
 
@@ -288,7 +385,10 @@ class _Kpi {
   final String label;
   final String value;
   final bool highlight;
-  const _Kpi(this.label, this.value, {this.highlight = false});
+
+  /// A short line under the number.
+  final String? note;
+  const _Kpi(this.label, this.value, {this.highlight = false, this.note});
 }
 
 /// Headline numbers: as many per row as fit (at least two).
@@ -328,6 +428,11 @@ class _KpiGrid extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(t.value, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                       ),
+                      if (t.note != null)
+                        Text(t.note!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -452,13 +557,17 @@ class _Bars extends StatelessWidget {
 /// Wide: label | bar | numbers on one line. Narrow: label and numbers above the bar.
 class _BreakdownBars extends StatelessWidget {
   final List<Breakdown> items;
-  const _BreakdownBars(this.items);
+
+  /// Bars sized by store profit instead of sales.
+  final bool byProfit;
+  const _BreakdownBars(this.items, {this.byProfit = false});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     if (items.isEmpty) return const Text('No data');
-    final maxV = items.fold<int>(0, (m, b) => b.revenueCents > m ? b.revenueCents : m);
+    int size(Breakdown b) => byProfit ? b.profitCents : b.revenueCents;
+    final maxV = items.fold<int>(0, (m, b) => size(b) > m ? size(b) : m);
     final numbersStyle = Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
     const barHeight = AppSpacing.m + AppSpacing.xxs;
 
@@ -467,7 +576,7 @@ class _BreakdownBars extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Container(
               height: barHeight,
-              width: maxV <= 0 ? 0 : (c.maxWidth * b.revenueCents / maxV).clamp(0.0, c.maxWidth),
+              width: maxV <= 0 ? 0 : (c.maxWidth * size(b) / maxV).clamp(0.0, c.maxWidth),
               decoration: BoxDecoration(
                 color: scheme.primary,
                 borderRadius: const BorderRadius.horizontal(right: Radius.circular(AppRadius.s)),
@@ -476,7 +585,9 @@ class _BreakdownBars extends StatelessWidget {
           ),
         );
 
-    String numbers(Breakdown b) => '${formatCents(b.revenueCents)} · ${b.units} u · profit ${formatCents(b.profitCents)}';
+    String numbers(Breakdown b) => byProfit
+        ? 'profit ${formatCents(b.profitCents)} · sales ${formatCents(b.revenueCents)}'
+        : '${formatCents(b.revenueCents)} · ${b.units} u · profit ${formatCents(b.profitCents)}';
 
     return LayoutBuilder(builder: (context, c) {
       final wide = c.maxWidth >= AppLayout.breakdownRowMin;

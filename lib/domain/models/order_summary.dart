@@ -7,6 +7,9 @@ class OrderSummary {
   final int taxCents;
   final int totalCents;
 
+  /// The workshop / event session running when the sale was made, if any.
+  final int? sessionId;
+
   const OrderSummary({
     required this.id,
     required this.createdAt,
@@ -14,5 +17,6 @@ class OrderSummary {
     required this.discountCents,
     required this.taxCents,
     required this.totalCents,
+    this.sessionId,
   });
 }

@@ -53,16 +53,21 @@ class Pricing {
     return BusinessRules.residentTaxAddedOnTop ? payoutCents + tax : payoutCents - tax;
   }
 
-  /// Store profit for a set of sales. See BusinessRules.profitSubtractsArtistResidentTax.
+  /// What artists are paid, not counting the Spain-resident tax: their
+  /// shares, or their shares minus the tax when it is withheld from them.
+  static int artistPayoutsWithoutTax({required int artistSharesCents, required int residentTaxCents}) =>
+      BusinessRules.residentTaxAddedOnTop ? artistSharesCents : artistSharesCents - residentTaxCents;
+
+  /// Store profit = customers paid − VAT − resident tax − artist payouts
+  /// (see BusinessRules, STORE PROFIT FORMULA).
   static int storeProfit({
     required int customerPaidCents,
-    required int artistPayoutCents,
-    required int artistResidentTaxAddedCents,
-  }) {
-    var profit = customerPaidCents - artistPayoutCents;
-    if (BusinessRules.profitSubtractsArtistResidentTax && BusinessRules.residentTaxAddedOnTop) {
-      profit -= artistResidentTaxAddedCents;
-    }
-    return profit;
-  }
+    required int vatCents,
+    required int artistSharesCents,
+    required int residentTaxCents,
+  }) =>
+      customerPaidCents -
+      vatCents -
+      residentTaxCents -
+      artistPayoutsWithoutTax(artistSharesCents: artistSharesCents, residentTaxCents: residentTaxCents);
 }

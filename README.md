@@ -179,6 +179,10 @@ camera details left out) and kept in the public Storage bucket **product-photos*
   in the category, shown whole with its full total.
 - **Month or date range** (`month_or_range_picker.dart`) is the same on Invoices and Sales.
 - **Reports → All time** runs from the first sale (imported past sales included) to today.
+- **Report figures** (the ⓘ button on Reports explains each one): Total sales (what customers paid) =
+  Store profit + Artist payouts + Taxes, where Taxes = VAT + the Spain-resident artist tax. Also average
+  sale, items per sale, cash vs card, store profit by artist, workshop vs other sales, and the stock on
+  the shelf valued at today's prices. Formulas: `Pricing.storeProfit` and `SalesReportBuilder`.
 - **Backups:** Settings shows the days since the last backup, when and by whom, shared by every device
   (stored in the `settings` table). After 7 days a banner reminds everyone (orange; red after 14 or if
   there has never been one); *Not today* hides it on that device until the next day. Suggested rhythm:

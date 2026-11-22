@@ -35,12 +35,12 @@ class BusinessRules {
   // false = the store absorbs the discount; artist still gets 65 €  (current choice)
   static const bool discountReducesArtistPayout = false;
 
-  // ►►► STORE PROFIT FORMULA
-  // Profit = what the customer paid (VAT included) − what the artist is paid.
-  // If true, the Spain-resident artist tax added on top (see above) is also
-  // subtracted, because it is money that leaves the store.
-  // NOTE: waiting for confirmation from the store owner.
-  static const bool profitSubtractsArtistResidentTax = true;
+  // ►►► STORE PROFIT FORMULA (as decided by the owners, Nov 2026)
+  // Store profit = what customers paid − taxes − artist payouts, where
+  //   taxes          = VAT on the sales + the Spain-resident artist tax
+  //   artist payouts = the artists' shares (when the resident tax is added
+  //                    on top, it counts as a tax, not as payout)
+  // So: total sales = store profit + artist payouts + taxes.
 
   // ►►► GOOGLE CALENDAR: which events count as workshop/event sessions.
   // An event counts if its title contains this word (case does not matter).

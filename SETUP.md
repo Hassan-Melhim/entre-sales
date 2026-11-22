@@ -61,6 +61,7 @@ once each** (if you ran the first three earlier, just run the newer ones):
 5. `20261121120000_product_photos.sql`: product photos. It creates the **product-photos** Storage
    bucket (public to view; only signed-in staff can add, change or remove photos).
 6. `20261121130000_sales_category_filter.sql`: lets the Sales screen filter by category.
+7. `20261122120000_report_details.sql`: report details (workshop sales, value of the stock on the shelf).
 
 For each one:
 

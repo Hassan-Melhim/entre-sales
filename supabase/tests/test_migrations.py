@@ -148,6 +148,11 @@ def main():
     check(len(c.execute("select * from report_refunded_items(now() - interval '1 day', now() + interval '1 day', %s)", (artist,)).fetchall()) == 2,
           'refunded items for the artist')
     check(len(c.execute('select * from report_stock_items()').fetchall()) == 2, 'stock items')
+    st = one(c, 'select row_to_json(r) from report_stock_items() r order by r.id limit 1')[0]
+    check(st['unit_base_cents'] == 10000 and float(st['tax_percent']) == 21 and float(st['commission_percent']) == 20  # product override
+          and st['artist_resident'] is True, f'stock items carry price and rates {st}')
+    os_ = one(c, "select row_to_json(r) from report_order_summaries(now() - interval '1 day', now() + interval '1 day') r limit 1")[0]
+    check('calendar_event_id' in os_, 'order summaries say whether a session was running')
     check(len(c.execute("select * from search_orders(now() - interval '1 day', now() + interval '1 day', null, 'sunset')").fetchall()) == 6,
           'order search')
     other_cat = one(c, "select id from categories where id <> %s order by id limit 1", (posters,))[0]

@@ -427,11 +427,7 @@ class _RuleRows extends StatelessWidget {
         ),
         const InfoRow('Discounts',
             BusinessRules.discountReducesArtistPayout ? 'Reduce the artist payout' : 'Absorbed by the store'),
-        InfoRow(
-          'Store profit',
-          'Customer paid (incl. VAT) − artist payout'
-              '${BusinessRules.profitSubtractsArtistResidentTax && BusinessRules.residentTaxAddedOnTop ? ' − resident tax added' : ''}',
-        ),
+        const InfoRow('Store profit', 'Customer paid − VAT − resident tax − artist payouts'),
         const InfoRow('Payout periods', 'Calendar month, or any date range'),
       ],
     );

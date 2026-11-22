@@ -166,6 +166,7 @@ class SupabaseMappers {
         discountCents: asInt(r['discount_cents']),
         taxCents: asInt(r['tax_cents']),
         totalCents: asInt(r['total_cents']),
+        sessionId: r['calendar_event_id'] == null ? null : asInt(r['calendar_event_id']),
       );
 
   static SoldItem soldItem(DbRow r) => SoldItem(
@@ -217,5 +218,10 @@ class SupabaseMappers {
         categoryName: r['category_name'] as String,
         quantity: asInt(r['quantity']),
         arrival: parseDay(r['arrival']),
+        artistId: r['artist_id'] == null ? null : asInt(r['artist_id']),
+        artistResident: r['artist_resident'] == true,
+        unitBaseCents: r['unit_base_cents'] == null ? null : asInt(r['unit_base_cents']),
+        taxPercent: r['tax_percent'] == null ? null : asDouble(r['tax_percent']),
+        commissionPercent: r['commission_percent'] == null ? null : asDouble(r['commission_percent']),
       );
 }
